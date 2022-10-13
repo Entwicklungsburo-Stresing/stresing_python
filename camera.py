@@ -1,4 +1,7 @@
 from ctypes import *
+import matplotlib.pyplot as plt
+
+drvno = 1
 
 class settings_struct(Structure):
 	_fields_ = [("software_polling", c_uint32),
@@ -66,6 +69,8 @@ settings.Vfreq = 7
 settings.FFTmode = 0
 settings.lines_binning = 1
 settings.dma_buffer_size_in_scans = 1000
+settings.stime_in_microsec = 1000
+settings.btime_in_microsec = 1000000
 
 dll = WinDLL("./ESLSCDLL")
 dll.DLLConvertErrorCodeToMsg.restype = c_char_p
@@ -84,6 +89,32 @@ if(status != 0):
 status = dll.DLLInitMeasurement()
 if(status != 0):
 	raise BaseException(dll.DLLConvertErrorCodeToMsg(status))
+status = dll.DLLStartMeasurement_blocking()
+if(status != 0):
+	raise BaseException(dll.DLLConvertErrorCodeToMsg(status))
+
+frame_buffer = (c_uint16 * settings.pixel)(0)
+ptr_frame_buffer = pointer(frame_buffer)
+status = dll.DLLReturnFrame(drvno, 10, 0, 0, ptr_frame_buffer, settings.pixel)
+if(status != 0):
+	raise BaseException(dll.DLLConvertErrorCodeToMsg(status))
+
+list_frame_buffer = [frame_buffer[i] for i in range(settings.pixel)]
+plt.plot(list_frame_buffer)
+plt.show()
+
+block_buffer = (c_uint16 * (settings.pixel * settings.nos * settings.camcnt))(0)
+ptr_block_buffer = pointer(block_buffer)
+status = dll.DLLCopyOneBlock(drvno, 0, ptr_block_buffer)
+if(status != 0):
+	raise BaseException(dll.DLLConvertErrorCodeToMsg(status))
+
+data_buffer = (c_uint16 * (settings.pixel * settings.nos * settings.camcnt * settings.nob))(0)
+ptr_data_buffer = pointer(data_buffer)
+status = dll.DLLCopyAllData(drvno, ptr_data_buffer)
+if(status != 0):
+	raise BaseException(dll.DLLConvertErrorCodeToMsg(status))
+
 status = dll.DLLExitDriver()
 if(status != 0):
 	raise BaseException(dll.DLLConvertErrorCodeToMsg(status))
