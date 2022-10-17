@@ -11,7 +11,7 @@ drvno = 1
 
 # This is the settings stuct. It must be the same like in EBST_CAM/shared_src/struct.h regarding order, data formates and size.
 class settings_struct(Structure):
-	_fields_ = [("software_polling", c_uint32),
+	_fields_ = [("use_software_polling", c_uint32),
 		("nos", c_uint32),
 		("nob", c_uint32),
 		("sti_mode", c_uint32),
@@ -36,7 +36,7 @@ class settings_struct(Structure):
 		("adc_gain", c_uint32),
 		("temp_level", c_uint32),
 		("DAC", c_uint32),
-		("enable_gpx", c_uint32),
+		("unused", c_uint32),
 		("gpx_offset", c_uint32),
 		("FFT_LINES", c_uint32),
 		("VFREQ", c_uint32),
