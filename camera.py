@@ -113,27 +113,27 @@ if(status != 0):
 	raise BaseException(dll.DLLConvertErrorCodeToMsg(status))
 
 # Create an c-style uint16 array of size pixel which is initialized to 0
-frame_buffer = (c_uint16 * settings.pixel)(0)
+frame_buffer = (c_uint16 * settings.PIXEL)(0)
 ptr_frame_buffer = pointer(frame_buffer)
 # Get the data of one frame. Sample 10, block 0, camera 0
-status = dll.DLLReturnFrame(drvno, 10, 0, 0, ptr_frame_buffer, settings.pixel)
+status = dll.DLLReturnFrame(drvno, 10, 0, 0, ptr_frame_buffer, settings.PIXEL)
 if(status != 0):
 	raise BaseException(dll.DLLConvertErrorCodeToMsg(status))
 # Convert the c-style array to a python list
-list_frame_buffer = [frame_buffer[i] for i in range(settings.pixel)]
+list_frame_buffer = [frame_buffer[i] for i in range(settings.PIXEL)]
 # Plot the frame
 plt.plot(list_frame_buffer)
 plt.show()
 
 # This block is showing you how to get all data of one frame with one DLL call
-# block_buffer = (c_uint16 * (settings.pixel * settings.nos * settings.camcnt))(0)
+# block_buffer = (c_uint16 * (settings.PIXEL * settings.nos * settings.CAMCNT))(0)
 # ptr_block_buffer = pointer(block_buffer)
 # status = dll.DLLCopyOneBlock(drvno, 0, ptr_block_buffer)
 # if(status != 0):
 # 	raise BaseException(dll.DLLConvertErrorCodeToMsg(status))
 
 # This block is showing you how to get all data of the whole measurement with one DLL call
-# data_buffer = (c_uint16 * (settings.pixel * settings.nos * settings.camcnt * settings.nob))(0)
+# data_buffer = (c_uint16 * (settings.PIXEL * settings.nos * settings.CAMCNT * settings.nob))(0)
 # ptr_data_buffer = pointer(data_buffer)
 # status = dll.DLLCopyAllData(drvno, ptr_data_buffer)
 # if(status != 0):
