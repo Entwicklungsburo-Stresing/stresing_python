@@ -1,4 +1,4 @@
-# This python example was created with DLL version 3.24.4
+# This python example was created with DLL version 4.2.5
 # This script initializes the camera, does one measurement, reads the data and plots the data. The data access happens after the complete measurement is done. This example is written for 1 camera on 1 PCIe board.
 
 # ctypes is used for communication with the DLL 
@@ -6,14 +6,9 @@ from ctypes import *
 # matplotlib is used for the data plot
 import matplotlib.pyplot as plt
 
-# drvno selects the PCIe board. While there is only 1 PCIe board in this exmaple, it is always 1.
-drvno = 1
-
-# This is the settings stuct. It must be the same like in EBST_CAM/shared_src/struct.h regarding order, data formates and size.
-class settings_struct(Structure):
+# These are the settings stucts. It must be the same like in EBST_CAM/shared_src/struct.h regarding order, data formates and size.
+class camera_settings(Structure):
 	_fields_ = [("use_software_polling", c_uint32),
-		("nos", c_uint32),
-		("nob", c_uint32),
 		("sti_mode", c_uint32),
 		("bti_mode", c_uint32),
 		("stime_in_microsec", c_uint32),
@@ -25,7 +20,6 @@ class settings_struct(Structure):
 		("xckdelay_in_10ns", c_uint32),
 		("sec_in_10ns", c_uint32),
 		("trigger_mode_cc", c_uint32),
-		("board_sel", c_uint32),
 		("SENSOR_TYPE", c_uint32),
 		("CAMERA_SYSTEM", c_uint32),
 		("CAMCNT", c_uint32),
@@ -35,8 +29,7 @@ class settings_struct(Structure):
 		("sensor_gain", c_uint32),
 		("adc_gain", c_uint32),
 		("temp_level", c_uint32),
-		("DAC", c_uint32),
-		("unused", c_uint32),
+		("shortrs", c_uint32),
 		("gpx_offset", c_uint32),
 		("FFT_LINES", c_uint32),
 		("VFREQ", c_uint32),
@@ -45,12 +38,11 @@ class settings_struct(Structure):
 		("number_of_regions", c_uint32),
 		("keep", c_uint32),
 		("region_size", c_uint32 * 8),
-		("dac_output", c_uint32 * 8 * 5),
+		("dac_output", c_uint32 * 8),
 		("tor", c_uint32),
 		("adc_mode", c_uint32),
 		("adc_custom_pattern", c_uint32),
 		("bec_in_10ns", c_uint32),
-		("cont_pause_in_microsecnods", c_uint32),
 		("IS_HS_IR", c_uint32),
 		("ioctrl_impact_start_pixel", c_uint32),
 		("ioctrl_output_width_in_5ns", c_uint32 * 8),
@@ -59,27 +51,43 @@ class settings_struct(Structure):
 		("dma_buffer_size_in_scans", c_uint32),
 		("tocnt", c_uint32),
 		("ticnt", c_uint32),
-		("use_ec", c_uint32)]
+		("use_ec", c_uint32),
+		("write_to_disc", c_uint32),
+		("file_path", c_char * 256),
+		("file_split_mode", c_uint32),
+		("is_cooled_cam", c_uint32),]
+
+class measurement_settings(Structure):
+	_fields_ = [("board_sel", c_uint32),
+	("nos", c_uint32),
+	("nob", c_uint32),
+	("contiuous_measurement", c_uint32),
+	("cont_pause_in_microseconds", c_uint32),
+	("camera_settings", camera_settings * 5)]
 
 # Create an instance of the settings struct
-settings = settings_struct()
+settings = measurement_settings()
 # Set all settings that are needed for the measurement. See EBST_CAM/shared_src/struct.h for details.
-settings.nos = 1000
-settings.nob = 2
-settings.sti_mode = 4
-settings.bti_mode = 4
 settings.board_sel = 1
-settings.SENSOR_TYPE = 1
-settings.CAMERA_SYSTEM = 0
-settings.CAMCNT = 1
-settings.PIXEL = 1088
-settings.FFT_LINES = 128
-settings.VFREQ = 7
-settings.fft_mode = 0
-settings.lines_binning = 1
-settings.dma_buffer_size_in_scans = 1000
-settings.stime_in_microsec = 1000
-settings.btime_in_microsec = 1000000
+settings.nos = 1000
+settings.nob = 1
+settings.camera_settings[0].sti_mode = 4
+settings.camera_settings[0].bti_mode = 4
+settings.camera_settings[0].SENSOR_TYPE = 0
+settings.camera_settings[0].CAMERA_SYSTEM = 2
+settings.camera_settings[0].CAMCNT = 1
+settings.camera_settings[0].PIXEL = 1024
+settings.camera_settings[0].dma_buffer_size_in_scans = 1000
+settings.camera_settings[0].stime_in_microsec = 1000
+settings.camera_settings[0].btime_in_microsec = 1000000
+settings.camera_settings[0].dac_output[0] = 55000
+settings.camera_settings[0].dac_output[1] = 55000
+settings.camera_settings[0].dac_output[2] = 55000
+settings.camera_settings[0].dac_output[3] = 55000
+settings.camera_settings[0].dac_output[4] = 55000
+settings.camera_settings[0].dac_output[5] = 55000
+settings.camera_settings[0].dac_output[6] = 55000
+settings.camera_settings[0].dac_output[7] = 55000
 
 # Load ESLSCDLL.dll
 dll = WinDLL("./ESLSCDLL")
@@ -113,14 +121,14 @@ if(status != 0):
 	raise BaseException(dll.DLLConvertErrorCodeToMsg(status))
 
 # Create an c-style uint16 array of size pixel which is initialized to 0
-frame_buffer = (c_uint16 * settings.PIXEL)(0)
+frame_buffer = (c_uint16 * settings.camera_settings[0].PIXEL)(0)
 ptr_frame_buffer = pointer(frame_buffer)
 # Get the data of one frame. Sample 10, block 0, camera 0
-status = dll.DLLReturnFrame(drvno, 10, 0, 0, ptr_frame_buffer, settings.PIXEL)
+status = dll.DLLReturnFrame(settings.board_sel, 100, 0, 0, ptr_frame_buffer, ptr_frame_buffer, settings.camera_settings[0].PIXEL)
 if(status != 0):
 	raise BaseException(dll.DLLConvertErrorCodeToMsg(status))
 # Convert the c-style array to a python list
-list_frame_buffer = [frame_buffer[i] for i in range(settings.PIXEL)]
+list_frame_buffer = [frame_buffer[i] for i in range(settings.camera_settings[0].PIXEL)]
 # Plot the frame
 plt.plot(list_frame_buffer)
 plt.show()
