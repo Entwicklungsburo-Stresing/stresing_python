@@ -1,4 +1,4 @@
-# This python example was created with DLL version 4.2.5
+# This python example was created with DLL version 4.2.6
 # This script initializes the camera, does one measurement, reads the data and plots the data. The data access happens after the complete measurement is done. This example is written for 1 camera on 1 PCIe board.
 
 # ctypes is used for communication with the DLL 
