@@ -1,4 +1,4 @@
-# This python example was created with DLL version 4.4.1
+# This python example was created with DLL version 4.4.4
 # This script initializes the camera, does one measurement, reads the data and plots the data. The data access happens after the complete measurement is done. This example is written for 1 camera on 1 PCIe board.
 
 # ctypes is used for communication with the DLL 
@@ -38,7 +38,7 @@ class camera_settings(Structure):
 		("number_of_regions", c_uint32),
 		("keep", c_uint32),
 		("region_size", c_uint32 * 8),
-		("dac_output", c_uint32 * 8),
+		("dac_output", c_uint32 * 8 * 8), # 8 channels for 8 possible cameras in line
 		("tor", c_uint32),
 		("adc_mode", c_uint32),
 		("adc_custom_pattern", c_uint32),
@@ -80,14 +80,14 @@ settings.camera_settings[0].PIXEL = 1024
 settings.camera_settings[0].dma_buffer_size_in_scans = 1000
 settings.camera_settings[0].stime_in_microsec = 1000
 settings.camera_settings[0].btime_in_microsec = 1000000
-settings.camera_settings[0].dac_output[0] = 55000
-settings.camera_settings[0].dac_output[1] = 55000
-settings.camera_settings[0].dac_output[2] = 55000
-settings.camera_settings[0].dac_output[3] = 55000
-settings.camera_settings[0].dac_output[4] = 55000
-settings.camera_settings[0].dac_output[5] = 55000
-settings.camera_settings[0].dac_output[6] = 55000
-settings.camera_settings[0].dac_output[7] = 55000
+settings.camera_settings[0].dac_output[0][0] = 55000
+settings.camera_settings[0].dac_output[0][1] = 55000
+settings.camera_settings[0].dac_output[0][2] = 55000
+settings.camera_settings[0].dac_output[0][3] = 55000
+settings.camera_settings[0].dac_output[0][4] = 55000
+settings.camera_settings[0].dac_output[0][5] = 55000
+settings.camera_settings[0].dac_output[0][6] = 55000
+settings.camera_settings[0].dac_output[0][7] = 55000
 
 # Load ESLSCDLL.dll
 dll = WinDLL("./ESLSCDLL")
