@@ -88,6 +88,8 @@ settings.camera_settings[0].dac_output[0][4] = 55000
 settings.camera_settings[0].dac_output[0][5] = 55000
 settings.camera_settings[0].dac_output[0][6] = 55000
 settings.camera_settings[0].dac_output[0][7] = 55000
+# Always use board 0. There is only one PCIe board in this example script.
+drvno = 0
 
 # Load ESLSCDLL.dll
 dll = WinDLL("./ESLSCDLL")
@@ -124,7 +126,7 @@ if(status != 0):
 frame_buffer = (c_uint16 * settings.camera_settings[0].PIXEL)(0)
 ptr_frame_buffer = pointer(frame_buffer)
 # Get the data of one frame. Sample 10, block 0, camera 0
-status = dll.DLLReturnFrame(settings.board_sel, 100, 0, 0, ptr_frame_buffer, ptr_frame_buffer, settings.camera_settings[0].PIXEL)
+status = dll.DLLReturnFrame(drvno, 100, 0, 0, settings.camera_settings[0].PIXEL, ptr_frame_buffer)
 if(status != 0):
 	raise BaseException(dll.DLLConvertErrorCodeToMsg(status))
 # Convert the c-style array to a python list
