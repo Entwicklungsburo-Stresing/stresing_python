@@ -70,6 +70,7 @@ drvno = 0
 # Create an instance of the settings struct
 settings = measurement_settings()
 # Set all settings that are needed for the measurement. See EBST_CAM/shared_src/struct.h for details.
+# You can find a description of all settings here: https://entwicklungsburo-stresing.github.io/structmeasurement__settings.html
 settings.board_sel = 1
 settings.nos = 1000
 settings.nob = 1
