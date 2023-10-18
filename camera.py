@@ -51,7 +51,7 @@ class camera_settings(Structure):
 		("dma_buffer_size_in_scans", c_uint32),
 		("tocnt", c_uint32),
 		("ticnt", c_uint32),
-		("use_ec", c_uint32),
+		("sensor_reset_length_in_8_ns", c_uint32),
 		("write_to_disc", c_uint32),
 		("file_path", c_char * 256),
 		("file_split_mode", c_uint32),
@@ -65,31 +65,31 @@ class measurement_settings(Structure):
 	("cont_pause_in_microseconds", c_uint32),
 	("camera_settings", camera_settings * 5)]
 
+# Always use board 0. There is only one PCIe board in this example script.
+drvno = 0
 # Create an instance of the settings struct
 settings = measurement_settings()
 # Set all settings that are needed for the measurement. See EBST_CAM/shared_src/struct.h for details.
 settings.board_sel = 1
 settings.nos = 1000
 settings.nob = 1
-settings.camera_settings[0].sti_mode = 4
-settings.camera_settings[0].bti_mode = 4
-settings.camera_settings[0].SENSOR_TYPE = 0
-settings.camera_settings[0].CAMERA_SYSTEM = 2
-settings.camera_settings[0].CAMCNT = 1
-settings.camera_settings[0].PIXEL = 1024
-settings.camera_settings[0].dma_buffer_size_in_scans = 1000
-settings.camera_settings[0].stime_in_microsec = 1000
-settings.camera_settings[0].btime_in_microsec = 1000000
-settings.camera_settings[0].dac_output[0][0] = 55000
-settings.camera_settings[0].dac_output[0][1] = 55000
-settings.camera_settings[0].dac_output[0][2] = 55000
-settings.camera_settings[0].dac_output[0][3] = 55000
-settings.camera_settings[0].dac_output[0][4] = 55000
-settings.camera_settings[0].dac_output[0][5] = 55000
-settings.camera_settings[0].dac_output[0][6] = 55000
-settings.camera_settings[0].dac_output[0][7] = 55000
-# Always use board 0. There is only one PCIe board in this example script.
-drvno = 0
+settings.camera_settings[drvno].sti_mode = 4
+settings.camera_settings[drvno].bti_mode = 4
+settings.camera_settings[drvno].SENSOR_TYPE = 4
+settings.camera_settings[drvno].CAMERA_SYSTEM = 2
+settings.camera_settings[drvno].CAMCNT = 1
+settings.camera_settings[drvno].PIXEL = 1024
+settings.camera_settings[drvno].dma_buffer_size_in_scans = 1000
+settings.camera_settings[drvno].stime_in_microsec = 1000
+settings.camera_settings[drvno].btime_in_microsec = 1000000
+settings.camera_settings[drvno].dac_output[0][0] = 55000
+settings.camera_settings[drvno].dac_output[0][1] = 55000
+settings.camera_settings[drvno].dac_output[0][2] = 55000
+settings.camera_settings[drvno].dac_output[0][3] = 55000
+settings.camera_settings[drvno].dac_output[0][4] = 55000
+settings.camera_settings[drvno].dac_output[0][5] = 55000
+settings.camera_settings[drvno].dac_output[0][6] = 55000
+settings.camera_settings[drvno].dac_output[0][7] = 55000
 
 # Load ESLSCDLL.dll
 dll = WinDLL("./ESLSCDLL")
