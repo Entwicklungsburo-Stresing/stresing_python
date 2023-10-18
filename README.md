@@ -2,7 +2,7 @@
 
 In this repository you can find a python script [camera.py](https://github.com/Entwicklungsburo-Stresing/stresing_python/blob/master/camera.py) for operating [Stresing](https://stresing.de) cameras. This script is only an example to show you, how to use our library with python and do a very basic measurement operations.
 
-![screenshot of the plot](https://github.com/Entwicklungsburo-Stresing/stresing_python/blob/master/screenshot/graph.png)
+![screenshot of the plot](./screenshot/graph.png)
 
 ## Dependencies
 * [Python 3](https://www.python.org/)
