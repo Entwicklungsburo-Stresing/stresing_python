@@ -1,10 +1,12 @@
-# This python example was created with DLL version 4.4.8
+# This python example was created with DLL version 4.4.9
 # This script initializes the camera, does one measurement, reads the data and plots the data. The data access happens after the complete measurement is done. This example is written for 1 camera on 1 PCIe board.
 
 # ctypes is used for communication with the DLL 
 from ctypes import *
 # matplotlib is used for the data plot
 import matplotlib.pyplot as plt
+
+use_blocking_call = False
 
 # These are the settings stucts. It must be the same like in EBST_CAM/shared_src/struct.h regarding order, data formates and size.
 class camera_settings(Structure):
@@ -65,31 +67,43 @@ class measurement_settings(Structure):
 	("cont_pause_in_microseconds", c_uint32),
 	("camera_settings", camera_settings * 5)]
 
+# Always use board 0. There is only one PCIe board in this example script.
+drvno = 0
 # Create an instance of the settings struct
 settings = measurement_settings()
 # Set all settings that are needed for the measurement. See EBST_CAM/shared_src/struct.h for details.
+# You can find a description of all settings here: https://entwicklungsburo-stresing.github.io/structmeasurement__settings.html
 settings.board_sel = 1
-settings.nos = 1000
-settings.nob = 1
-settings.camera_settings[0].sti_mode = 4
-settings.camera_settings[0].bti_mode = 4
-settings.camera_settings[0].SENSOR_TYPE = 0
-settings.camera_settings[0].CAMERA_SYSTEM = 2
-settings.camera_settings[0].CAMCNT = 1
-settings.camera_settings[0].PIXEL = 1024
-settings.camera_settings[0].dma_buffer_size_in_scans = 1000
-settings.camera_settings[0].stime_in_microsec = 1000
-settings.camera_settings[0].btime_in_microsec = 1000000
-settings.camera_settings[0].dac_output[0][0] = 55000
-settings.camera_settings[0].dac_output[0][1] = 55000
-settings.camera_settings[0].dac_output[0][2] = 55000
-settings.camera_settings[0].dac_output[0][3] = 55000
-settings.camera_settings[0].dac_output[0][4] = 55000
-settings.camera_settings[0].dac_output[0][5] = 55000
-settings.camera_settings[0].dac_output[0][6] = 55000
-settings.camera_settings[0].dac_output[0][7] = 55000
-# Always use board 0. There is only one PCIe board in this example script.
-drvno = 0
+settings.nos = 5
+settings.nob = 10
+settings.camera_settings[drvno].sti_mode = 5
+settings.camera_settings[drvno].bti_mode = 4
+settings.camera_settings[drvno].SENSOR_TYPE = 1
+settings.camera_settings[drvno].CAMERA_SYSTEM = 0
+settings.camera_settings[drvno].CAMCNT = 1
+settings.camera_settings[drvno].PIXEL = 1088
+settings.camera_settings[drvno].dma_buffer_size_in_scans = 1000
+settings.camera_settings[drvno].stime_in_microsec = 1000
+settings.camera_settings[drvno].btime_in_microsec = 100000
+settings.camera_settings[drvno].fft_mode = 1
+settings.camera_settings[drvno].FFT_LINES = 128
+settings.camera_settings[drvno].lines_binning = 1
+settings.camera_settings[drvno].number_of_regions = 5
+settings.camera_settings[drvno].region_size[0] = 10
+settings.camera_settings[drvno].region_size[1] = 50
+settings.camera_settings[drvno].region_size[2] = 10
+settings.camera_settings[drvno].region_size[3] = 50
+settings.camera_settings[drvno].region_size[4] = 8
+settings.camera_settings[drvno].use_software_polling = 1
+settings.camera_settings[drvno].VFREQ = 7
+# settings.camera_settings[drvno].dac_output[0][0] = 55000
+# settings.camera_settings[drvno].dac_output[0][1] = 55000
+# settings.camera_settings[drvno].dac_output[0][2] = 55000
+# settings.camera_settings[drvno].dac_output[0][3] = 55000
+# settings.camera_settings[drvno].dac_output[0][4] = 55000
+# settings.camera_settings[drvno].dac_output[0][5] = 55000
+# settings.camera_settings[drvno].dac_output[0][6] = 55000
+# settings.camera_settings[drvno].dac_output[0][7] = 55000
 
 # Load ESLSCDLL.dll
 dll = WinDLL("./ESLSCDLL")
@@ -117,16 +131,30 @@ if(status != 0):
 status = dll.DLLInitMeasurement()
 if(status != 0):
 	raise BaseException(dll.DLLConvertErrorCodeToMsg(status))
-# Start the measurement. In this example the blocking call is used, which means this call will return when the measurement is finished. This is done to ensure that no data access happens before all data is collected.
-status = dll.DLLStartMeasurement_blocking()
-if(status != 0):
-	raise BaseException(dll.DLLConvertErrorCodeToMsg(status))
+
+if use_blocking_call:
+	# Start the measurement. This is the blocking call, which means it will return when the measurement is finished. This is done to ensure that no data access happens before all data is collected.
+	status = dll.DLLStartMeasurement_blocking()
+	if(status != 0):
+		raise BaseException(dll.DLLConvertErrorCodeToMsg(status))
+else:
+	# Start the measurement. This is the nonblocking call, which means it will return immediately. 
+	dll.DLLStartMeasurement_nonblocking()
+
+	cur_sample = c_int64(-2)
+	ptr_cur_sample = pointer(cur_sample)
+	cur_block = c_int64(-2)
+	ptr_cur_block = pointer(cur_block)
+
+	while cur_sample.value < settings.nos-1 or cur_block.value < settings.nob-1:
+		dll.DLLGetCurrentScanNumber(drvno, ptr_cur_sample, ptr_cur_block)
+		print("sample: "+str(cur_sample.value)+" block: "+str(cur_block.value))
 
 # Create an c-style uint16 array of size pixel which is initialized to 0
 frame_buffer = (c_uint16 * settings.camera_settings[0].PIXEL)(0)
 ptr_frame_buffer = pointer(frame_buffer)
-# Get the data of one frame. Sample 10, block 0, camera 0
-status = dll.DLLReturnFrame(drvno, 10, 0, 0, settings.camera_settings[0].PIXEL, ptr_frame_buffer)
+# Get the data of one frame. Sample 1, block 2, camera 0
+status = dll.DLLReturnFrame(drvno, 1, 2, 0, settings.camera_settings[0].PIXEL, ptr_frame_buffer)
 if(status != 0):
 	raise BaseException(dll.DLLConvertErrorCodeToMsg(status))
 # Convert the c-style array to a python list
