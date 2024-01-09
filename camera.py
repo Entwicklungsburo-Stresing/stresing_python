@@ -38,7 +38,7 @@ class camera_settings(Structure):
 		("fft_mode", c_uint32),
 		("lines_binning", c_uint32),
 		("number_of_regions", c_uint32),
-		("keep", c_uint32),
+		("s1s2_read_delay_in_10ns", c_uint32),
 		("region_size", c_uint32 * 8),
 		("dac_output", c_uint32 * 8 * 8), # 8 channels for 8 possible cameras in line
 		("tor", c_uint32),
@@ -57,7 +57,8 @@ class camera_settings(Structure):
 		("write_to_disc", c_uint32),
 		("file_path", c_char * 256),
 		("file_split_mode", c_uint32),
-		("is_cooled_cam", c_uint32),]
+		("is_cooled_cam", c_uint32),
+		("bnc_out", c_uint32)]
 
 class measurement_settings(Structure):
 	_fields_ = [("board_sel", c_uint32),
