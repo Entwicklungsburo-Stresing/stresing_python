@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 
 use_blocking_call = False
 
-# These are the settings stucts. It must be the same like in EBST_CAM/shared_src/struct.h regarding order, data formates and size.
+# These are the settings structs. It must be the same like in EBST_CAM/shared_src/struct.h regarding order, data formats and size.
 class camera_settings(Structure):
 	_fields_ = [("use_software_polling", c_uint32),
 		("sti_mode", c_uint32),
