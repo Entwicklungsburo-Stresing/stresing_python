@@ -6,7 +6,7 @@ from ctypes import *
 # matplotlib is used for the data plot
 import matplotlib.pyplot as plt
 
-use_blocking_call = False
+use_blocking_call = True
 
 # These are the settings structs. It must be the same like in EBST_CAM/shared_src/struct.h regarding order, data formats and size.
 class camera_settings(Structure):
@@ -74,12 +74,12 @@ settings = measurement_settings()
 # Set all settings that are needed for the measurement. See EBST_CAM/shared_src/struct.h for details.
 # You can find a description of all settings here: https://entwicklungsburo-stresing.github.io/structmeasurement__settings.html
 settings.board_sel = 1
-settings.nos = 5
-settings.nob = 10
-settings.camera_settings[drvno].sti_mode = 5
+settings.nos = 1000
+settings.nob = 1
+settings.camera_settings[drvno].sti_mode = 4
 settings.camera_settings[drvno].bti_mode = 4
-settings.camera_settings[drvno].SENSOR_TYPE = 2
-settings.camera_settings[drvno].CAMERA_SYSTEM = 0
+settings.camera_settings[drvno].SENSOR_TYPE = 4
+settings.camera_settings[drvno].CAMERA_SYSTEM = 2
 settings.camera_settings[drvno].CAMCNT = 1
 settings.camera_settings[drvno].PIXEL = 1088
 settings.camera_settings[drvno].dma_buffer_size_in_scans = 1000
@@ -94,16 +94,16 @@ settings.camera_settings[drvno].region_size[1] = 50
 settings.camera_settings[drvno].region_size[2] = 10
 settings.camera_settings[drvno].region_size[3] = 50
 settings.camera_settings[drvno].region_size[4] = 8
-settings.camera_settings[drvno].use_software_polling = 1
+settings.camera_settings[drvno].use_software_polling = 0
 settings.camera_settings[drvno].VFREQ = 7
-# settings.camera_settings[drvno].dac_output[0][0] = 55000
-# settings.camera_settings[drvno].dac_output[0][1] = 55000
-# settings.camera_settings[drvno].dac_output[0][2] = 55000
-# settings.camera_settings[drvno].dac_output[0][3] = 55000
-# settings.camera_settings[drvno].dac_output[0][4] = 55000
-# settings.camera_settings[drvno].dac_output[0][5] = 55000
-# settings.camera_settings[drvno].dac_output[0][6] = 55000
-# settings.camera_settings[drvno].dac_output[0][7] = 55000
+settings.camera_settings[drvno].dac_output[0][0] = 55000
+settings.camera_settings[drvno].dac_output[0][1] = 55000
+settings.camera_settings[drvno].dac_output[0][2] = 55000
+settings.camera_settings[drvno].dac_output[0][3] = 55000
+settings.camera_settings[drvno].dac_output[0][4] = 55000
+settings.camera_settings[drvno].dac_output[0][5] = 55000
+settings.camera_settings[drvno].dac_output[0][6] = 55000
+settings.camera_settings[drvno].dac_output[0][7] = 55000
 
 # Load ESLSCDLL.dll
 dll = WinDLL("./ESLSCDLL")
@@ -154,7 +154,7 @@ else:
 frame_buffer = (c_uint16 * settings.camera_settings[0].PIXEL)(0)
 ptr_frame_buffer = pointer(frame_buffer)
 # Get the data of one frame. Sample 1, block 2, camera 0
-status = dll.DLLReturnFrame(drvno, 1, 2, 0, settings.camera_settings[0].PIXEL, ptr_frame_buffer)
+status = dll.DLLReturnFrame(drvno, 5, 0, 0, settings.camera_settings[0].PIXEL, ptr_frame_buffer)
 if(status != 0):
 	raise BaseException(dll.DLLConvertErrorCodeToMsg(status))
 # Convert the c-style array to a python list
