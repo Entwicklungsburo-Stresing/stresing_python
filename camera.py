@@ -1,4 +1,4 @@
-# This python example was created with DLL version 4.12.2
+# This python example was created with DLL version 4.13.0
 # This script initializes the camera, does one measurement, reads the data and plots the data. The data access happens after the complete measurement is done. This example is written for 1 camera on 1 PCIe board.
 
 # ctypes is used for communication with the DLL 
@@ -53,7 +53,7 @@ class camera_settings(Structure):
 		("dma_buffer_size_in_scans", c_uint32),
 		("tocnt", c_uint32),
 		("sticnt", c_uint32),
-		("sensor_reset_length_in_8_ns", c_uint32),
+		("sensor_reset_length", c_uint32),
 		("write_to_disc", c_uint32),
 		("file_path", c_char * 256),
 		("file_split_mode", c_uint32),
