@@ -1,4 +1,4 @@
-# This python example was created with DLL version 4.14.0
+# This python example was created with DLL version 4.15.0
 # This script initializes the camera, does one measurement, reads the data and plots the data. The data access happens after the complete measurement is done. This example is written for 1 camera on 1 PCIe board.
 
 # ctypes is used for communication with the DLL 
@@ -45,7 +45,7 @@ class camera_settings(Structure):
 		("adc_mode", c_uint32),
 		("adc_custom_pattern", c_uint32),
 		("bec_in_10ns", c_uint32),
-		("IS_HS_IR", c_uint32),
+		("channel_select", c_uint32),
 		("ioctrl_impact_start_pixel", c_uint32),
 		("ioctrl_output_width_in_5ns", c_uint32 * 8),
 		("ioctrl_output_delay_in_5ns", c_uint32 * 8),
