@@ -1,4 +1,4 @@
-# This python example was created with DLL version 4.15.0
+# This python example was created with DLL version 4.15.1
 # This script initializes the camera, does one measurement, reads the data and plots the data. The data access happens after the complete measurement is done. This example is written for 1 camera on 1 PCIe board.
 
 # ctypes is used for communication with the DLL 
@@ -154,8 +154,8 @@ else:
 # Create an c-style uint16 array of size pixel which is initialized to 0
 frame_buffer = (c_uint16 * settings.camera_settings[0].PIXEL)(0)
 ptr_frame_buffer = pointer(frame_buffer)
-# Get the data of one frame. Sample 1, block 2, camera 0
-status = dll.DLLReturnFrame(drvno, 5, 0, 0, settings.camera_settings[0].PIXEL, ptr_frame_buffer)
+# Get the data of one frame. Sample 5, block 0, camera 0
+status = dll.DLLCopyOneSample(drvno, 5, 0, 0, ptr_frame_buffer)
 if(status != 0):
 	raise BaseException(dll.DLLConvertErrorCodeToMsg(status))
 # Convert the c-style array to a python list
