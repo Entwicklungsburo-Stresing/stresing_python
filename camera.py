@@ -1,4 +1,4 @@
-# This python example was created with DLL version 4.17.0
+# This python example was created with DLL version 4.17.1
 # This script initializes the camera, does one measurement, reads the data and plots the data. The data access happens after the complete measurement is done. This example is written for 1 camera on 1 PCIe board.
 
 # ctypes is used for communication with the DLL 
@@ -74,6 +74,19 @@ class measurement_settings(Structure):
 drvno = 0
 # Create an instance of the settings struct
 settings = measurement_settings()
+# Load ESLSCDLL.dll
+if os.name == 'nt':
+	dll = WinDLL("./ESLSCDLL")
+else:
+	dll = find_library("ESLSCDLL")
+	dll = CDLL(dll)
+# Set the return type of DLLConvertErrorCodeToMsg to c-string pointer
+dll.DLLConvertErrorCodeToMsg.restype = c_char_p
+# Get a pointer to the settings
+ptr_settings = pointer(settings)
+# Init all settings to its default value
+dll.DLLInitSettingsStruct(ptr_settings)
+
 # Set all settings that are needed for the measurement. See EBST_CAM/shared_src/struct.h for details.
 # You can find a description of all settings here: https://entwicklungsburo-stresing.github.io/structmeasurement__settings.html
 settings.board_sel = 1
@@ -85,7 +98,6 @@ settings.camera_settings[drvno].SENSOR_TYPE = 4
 settings.camera_settings[drvno].CAMERA_SYSTEM = 2
 settings.camera_settings[drvno].CAMCNT = 1
 settings.camera_settings[drvno].PIXEL = 1088
-settings.camera_settings[drvno].dma_buffer_size_in_scans = 1000
 settings.camera_settings[drvno].stime_in_microsec = 1000
 settings.camera_settings[drvno].btime_in_microsec = 100000
 settings.camera_settings[drvno].fft_mode = 1
@@ -108,14 +120,6 @@ settings.camera_settings[drvno].dac_output[0][5] = 55000
 settings.camera_settings[drvno].dac_output[0][6] = 55000
 settings.camera_settings[drvno].dac_output[0][7] = 55000
 
-# Load ESLSCDLL.dll
-if os.name == 'nt':
-	dll = WinDLL("./ESLSCDLL")
-else:
-	dll = find_library("ESLSCDLL")
-	dll = CDLL(dll)
-# Set the return type of DLLConvertErrorCodeToMsg to c-string pointer
-dll.DLLConvertErrorCodeToMsg.restype = c_char_p
 
 # Create a variable of type uint8_t
 number_of_boards = c_uint8(0)
