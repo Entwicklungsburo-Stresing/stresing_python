@@ -3,8 +3,10 @@
 
 # ctypes is used for communication with the DLL 
 from ctypes import *
+from ctypes.util import find_library
 # matplotlib is used for the data plot
 import matplotlib.pyplot as plt
+import os
 
 use_blocking_call = True
 
@@ -107,7 +109,11 @@ settings.camera_settings[drvno].dac_output[0][6] = 55000
 settings.camera_settings[drvno].dac_output[0][7] = 55000
 
 # Load ESLSCDLL.dll
-dll = WinDLL("./ESLSCDLL")
+if os.name == 'nt':
+	dll = WinDLL("./ESLSCDLL")
+else:
+	dll = find_library("ESLSCDLL")
+	dll = CDLL(dll)
 # Set the return type of DLLConvertErrorCodeToMsg to c-string pointer
 dll.DLLConvertErrorCodeToMsg.restype = c_char_p
 
