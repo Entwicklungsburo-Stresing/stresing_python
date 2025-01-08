@@ -79,7 +79,9 @@ drvno = 0
 settings = measurement_settings()
 # Load ESLSCDLL.dll
 if os.name == 'nt':
-	dll = WinDLL("./ESLSCDLL")
+	file_path = os.path.abspath(os.path.dirname(__file__))
+	print(file_path)
+	dll = WinDLL(file_path + "/ESLSCDLL")
 else:
 	dll = find_library("ESLSCDLL")
 	dll = CDLL(dll)

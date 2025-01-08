@@ -77,7 +77,9 @@ drvno = 0
 settings = measurement_settings()
 # Load ESLSCDLL.dll
 if os.name == 'nt':
-	dll = WinDLL("./ESLSCDLL")
+	file_path = os.path.abspath(os.path.dirname(__file__))
+	print(file_path)
+	dll = WinDLL(file_path + "/ESLSCDLL")
 else:
 	dll = find_library("ESLSCDLL")
 	dll = CDLL(dll)
@@ -91,18 +93,18 @@ dll.DLLInitSettingsStruct(ptr_settings)
 # Set all settings that are needed for the measurement. See EBST_CAM/shared_src/struct.h for details.
 # You can find a description of all settings here: https://entwicklungsburo-stresing.github.io/structmeasurement__settings.html
 settings.board_sel = 1
-settings.nos = 100
+settings.nos = 10
 settings.nob = 1
 settings.camera_settings[drvno].sti_mode = 4
 settings.camera_settings[drvno].bti_mode = 4
-settings.camera_settings[drvno].SENSOR_TYPE = 4
-settings.camera_settings[drvno].CAMERA_SYSTEM = 2
-settings.camera_settings[drvno].CAMCNT = 1
+settings.camera_settings[drvno].SENSOR_TYPE = 3
+settings.camera_settings[drvno].CAMERA_SYSTEM = 1
+settings.camera_settings[drvno].CAMCNT = 2
 settings.camera_settings[drvno].PIXEL = 1024
-settings.camera_settings[drvno].stime_in_microsec = 10
+settings.camera_settings[drvno].stime_in_microsec = 440
 settings.camera_settings[drvno].btime_in_microsec = 10
 settings.camera_settings[drvno].fft_mode = 0
-settings.camera_settings[drvno].FFT_LINES = 128
+settings.camera_settings[drvno].FFT_LINES = 64
 settings.camera_settings[drvno].lines_binning = 1
 settings.camera_settings[drvno].number_of_regions = 5
 settings.camera_settings[drvno].region_size[0] = 10
@@ -111,7 +113,7 @@ settings.camera_settings[drvno].region_size[2] = 10
 settings.camera_settings[drvno].region_size[3] = 50
 settings.camera_settings[drvno].region_size[4] = 8
 settings.camera_settings[drvno].use_software_polling = 0
-settings.camera_settings[drvno].VFREQ = 7
+settings.camera_settings[drvno].VFREQ = 3
 settings.camera_settings[drvno].dac_output[0][0] = 53256
 settings.camera_settings[drvno].dac_output[0][1] = 53291
 settings.camera_settings[drvno].dac_output[0][2] = 53538
@@ -137,11 +139,14 @@ if(status != 0):
 	raise BaseException(dll.DLLConvertErrorCodeToMsg(status))
 
 list_frame_buffer = []
-pixel_plot = 605
-measurement_cnt = 1800
+pixel_plot = 690
+start_stime = settings.camera_settings[drvno].stime_in_microsec
+stop_stime = 18000
 step_size = 1
+measurement_cnt = int((stop_stime - start_stime) / step_size)
 
 for i in range(measurement_cnt):
+	print("Measurement " + str(i + 1) + " of " + str(measurement_cnt) + ", stime = " + str(settings.camera_settings[drvno].stime_in_microsec) + " µs")
 	# Set all settings with the earlier created settings struct
 	status = dll.DLLSetGlobalSettings(settings)
 	if(status != 0):
@@ -157,8 +162,8 @@ for i in range(measurement_cnt):
 	# Create an c-style uint16 array of size pixel which is initialized to 0
 	frame_buffer = (c_uint16 * settings.camera_settings[0].PIXEL)(0)
 	ptr_frame_buffer = pointer(frame_buffer)
-	# Get the data of one frame. Sample 99, block 0, camera 0
-	status = dll.DLLCopyOneSample(drvno, 99, 0, 0, ptr_frame_buffer)
+	# Get the data of one frame. Sample settings.nos-1, block 0, camera 0
+	status = dll.DLLCopyOneSample(drvno, settings.nos-1, 0, 0, ptr_frame_buffer)
 	if(status != 0):
 		raise BaseException(dll.DLLConvertErrorCodeToMsg(status))
 	# Convert the c-style array to a python list
@@ -172,7 +177,7 @@ plt.subplot(211)
 plt.plot(list_frame_buffer)
 plt.yscale('linear')
 plt.xscale('linear')
-plt.xlabel('stime = 10 µs + x')
+plt.xlabel('stime = ' + str(start_stime) + ' µs + x')
 plt.title('linear')
 plt.grid(True)
 
@@ -180,7 +185,7 @@ plt.subplot(212)
 plt.plot(list_frame_buffer)
 plt.yscale('log')
 plt.xscale('log')
-plt.xlabel('stime = 10 µs + x')
+plt.xlabel('stime = ' + str(start_stime) + ' µs + x')
 plt.title('log')
 plt.grid(True)
 plt.show()
