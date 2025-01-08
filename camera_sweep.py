@@ -100,7 +100,7 @@ settings.camera_settings[drvno].CAMERA_SYSTEM = 2
 settings.camera_settings[drvno].CAMCNT = 1
 settings.camera_settings[drvno].PIXEL = 1024
 settings.camera_settings[drvno].stime_in_microsec = 10
-settings.camera_settings[drvno].btime_in_microsec = 100000
+settings.camera_settings[drvno].btime_in_microsec = 10
 settings.camera_settings[drvno].fft_mode = 0
 settings.camera_settings[drvno].FFT_LINES = 128
 settings.camera_settings[drvno].lines_binning = 1
@@ -112,14 +112,15 @@ settings.camera_settings[drvno].region_size[3] = 50
 settings.camera_settings[drvno].region_size[4] = 8
 settings.camera_settings[drvno].use_software_polling = 0
 settings.camera_settings[drvno].VFREQ = 7
-settings.camera_settings[drvno].dac_output[0][0] = 53631
-settings.camera_settings[drvno].dac_output[0][1] = 53675
-settings.camera_settings[drvno].dac_output[0][2] = 53919
-settings.camera_settings[drvno].dac_output[0][3] = 53708
-settings.camera_settings[drvno].dac_output[0][4] = 53596
-settings.camera_settings[drvno].dac_output[0][5] = 53742
-settings.camera_settings[drvno].dac_output[0][6] = 53707
-settings.camera_settings[drvno].dac_output[0][7] = 53618
+settings.camera_settings[drvno].dac_output[0][0] = 53256
+settings.camera_settings[drvno].dac_output[0][1] = 53291
+settings.camera_settings[drvno].dac_output[0][2] = 53538
+settings.camera_settings[drvno].dac_output[0][3] = 53335
+settings.camera_settings[drvno].dac_output[0][4] = 53194
+settings.camera_settings[drvno].dac_output[0][5] = 53364
+settings.camera_settings[drvno].dac_output[0][6] = 53333
+settings.camera_settings[drvno].dac_output[0][7] = 53248
+settings.camera_settings[drvno].adc_gain = 6
 
 # Create a variable of type uint8_t
 number_of_boards = c_uint8(0)
@@ -136,8 +137,8 @@ if(status != 0):
 	raise BaseException(dll.DLLConvertErrorCodeToMsg(status))
 
 list_frame_buffer = []
-pixel_plot = 570
-measurement_cnt = 300
+pixel_plot = 605
+measurement_cnt = 1800
 step_size = 1
 
 for i in range(measurement_cnt):
@@ -165,8 +166,23 @@ for i in range(measurement_cnt):
 	settings.camera_settings[drvno].stime_in_microsec += step_size
 
 
-# Plot the frame
+# Plot
+plt.figure(layout="constrained")
+plt.subplot(211)
 plt.plot(list_frame_buffer)
+plt.yscale('linear')
+plt.xscale('linear')
+plt.xlabel('stime = 10 µs + x')
+plt.title('linear')
+plt.grid(True)
+
+plt.subplot(212)
+plt.plot(list_frame_buffer)
+plt.yscale('log')
+plt.xscale('log')
+plt.xlabel('stime = 10 µs + x')
+plt.title('log')
+plt.grid(True)
 plt.show()
 
 # Exit the driver
