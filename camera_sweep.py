@@ -139,9 +139,10 @@ if(status != 0):
 	raise BaseException(dll.DLLConvertErrorCodeToMsg(status))
 
 # create an empty list to store the data
-list_frame_buffer = []
+list_x = []
+list_y = []
 # plot this pixel
-pixel_plot = 690
+pixel_plot = 700
 # this is the exposure time at which the sweep starts
 start_stime = settings.camera_settings[drvno].stime_in_microsec
 # do the first measurements with step_size
@@ -149,7 +150,7 @@ step_size1_measurement_cnt = 200
 # this is the exposure time at which the step size changes
 stime_step2 = start_stime + step_size1_measurement_cnt
 # this is the exposure time at which the sweep stops
-stop_stime = 18000
+stop_stime = 20000
 # this is the step size for the first measurements
 step_size = 1
 # after the count of measurements of step_size1_measurement_cnt are done change the step size to step_size2
@@ -178,7 +179,8 @@ for i in range(measurement_cnt):
 	if(status != 0):
 		raise BaseException(dll.DLLConvertErrorCodeToMsg(status))
 	# Convert the c-style array to a python list
-	list_frame_buffer.append([frame_buffer[pixel_plot]])
+	list_x.append(settings.camera_settings[drvno].stime_in_microsec)
+	list_y.append(frame_buffer[pixel_plot])
 	if i < step_size1_measurement_cnt:
 		settings.camera_settings[drvno].stime_in_microsec += step_size
 	else:
@@ -187,18 +189,18 @@ for i in range(measurement_cnt):
 # Plot
 plt.figure(layout="constrained")
 plt.subplot(211)
-plt.plot(list_frame_buffer)
+plt.plot(list_x, list_y)
 plt.yscale('linear')
 plt.xscale('linear')
-plt.xlabel('stime = ' + str(start_stime) + ' µs + x')
+plt.xlabel('stime in µs')
 plt.title('linear')
 plt.grid(True)
 
 plt.subplot(212)
-plt.plot(list_frame_buffer)
+plt.plot(list_x, list_y)
 plt.yscale('log')
 plt.xscale('log')
-plt.xlabel('stime = ' + str(start_stime) + ' µs + x')
+plt.xlabel('stime in µs')
 plt.title('log')
 plt.grid(True)
 plt.show()
