@@ -138,12 +138,23 @@ status = dll.DLLInitBoard()
 if(status != 0):
 	raise BaseException(dll.DLLConvertErrorCodeToMsg(status))
 
+# create an empty list to store the data
 list_frame_buffer = []
+# plot this pixel
 pixel_plot = 690
+# this is the exposure time at which the sweep starts
 start_stime = settings.camera_settings[drvno].stime_in_microsec
+# do the first measurements with step_size
+step_size1_measurement_cnt = 200
+# this is the exposure time at which the step size changes
+stime_step2 = start_stime + step_size1_measurement_cnt
+# this is the exposure time at which the sweep stops
 stop_stime = 18000
+# this is the step size for the first measurements
 step_size = 1
-measurement_cnt = int((stop_stime - start_stime) / step_size)
+# after the count of measurements of step_size1_measurement_cnt are done change the step size to step_size2
+step_size2 = 10
+measurement_cnt = int((stime_step2 - start_stime) / step_size) + int((stop_stime - stime_step2) / step_size2)
 
 for i in range(measurement_cnt):
 	print("Measurement " + str(i + 1) + " of " + str(measurement_cnt) + ", stime = " + str(settings.camera_settings[drvno].stime_in_microsec) + " µs")
@@ -168,8 +179,10 @@ for i in range(measurement_cnt):
 		raise BaseException(dll.DLLConvertErrorCodeToMsg(status))
 	# Convert the c-style array to a python list
 	list_frame_buffer.append([frame_buffer[pixel_plot]])
-	settings.camera_settings[drvno].stime_in_microsec += step_size
-
+	if i < step_size1_measurement_cnt:
+		settings.camera_settings[drvno].stime_in_microsec += step_size
+	else:
+		settings.camera_settings[drvno].stime_in_microsec += step_size2
 
 # Plot
 plt.figure(layout="constrained")
