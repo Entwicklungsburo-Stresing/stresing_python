@@ -144,18 +144,21 @@ list_y = []
 # plot this pixel
 pixel_plot = 700
 # this is the exposure time at which the sweep starts
-start_stime = settings.camera_settings[drvno].stime_in_microsec
+start_value = settings.camera_settings[drvno].stime_in_microsec
 # do the first measurements with step_size
 step_size1_measurement_cnt = 200
 # this is the exposure time at which the step size changes
-stime_step2 = start_stime + step_size1_measurement_cnt
+value_step2 = start_value + step_size1_measurement_cnt
 # this is the exposure time at which the sweep stops
-stop_stime = 20000
+stop_value = 300
 # this is the step size for the first measurements
 step_size = 1
 # after the count of measurements of step_size1_measurement_cnt are done change the step size to step_size2
 step_size2 = 10
-measurement_cnt = int((stime_step2 - start_stime) / step_size) + int((stop_stime - stime_step2) / step_size2)
+measurement_cnt = int((value_step2 - start_value) / step_size) + int((stop_value - value_step2) / step_size2)
+# Create an c-style uint16 array of size pixel which is initialized to 0
+frame_buffer = (c_uint16 * settings.camera_settings[0].PIXEL)(0)
+ptr_frame_buffer = pointer(frame_buffer)
 
 for i in range(measurement_cnt):
 	print("Measurement " + str(i + 1) + " of " + str(measurement_cnt) + ", stime = " + str(settings.camera_settings[drvno].stime_in_microsec) + " µs")
@@ -171,9 +174,6 @@ for i in range(measurement_cnt):
 	status = dll.DLLStartMeasurement_blocking()
 	if(status != 0):
 		raise BaseException(dll.DLLConvertErrorCodeToMsg(status))
-	# Create an c-style uint16 array of size pixel which is initialized to 0
-	frame_buffer = (c_uint16 * settings.camera_settings[0].PIXEL)(0)
-	ptr_frame_buffer = pointer(frame_buffer)
 	# Get the data of one frame. Sample settings.nos-1, block 0, camera 0
 	status = dll.DLLCopyOneSample(drvno, settings.nos-1, 0, 0, ptr_frame_buffer)
 	if(status != 0):
