@@ -67,7 +67,7 @@ class measurement_settings(Structure):
 	_fields_ = [("board_sel", c_uint32),
 	("nos", c_uint32),
 	("nob", c_uint32),
-	("contiuous_measurement", c_uint32),
+	("continuous_measurement", c_uint32),
 	("cont_pause_in_microseconds", c_uint32),
 	("camera_settings", camera_settings * 5)]
 
@@ -97,16 +97,18 @@ settings.nos = 10
 settings.nob = 1
 settings.camera_settings[drvno].sti_mode = 4
 settings.camera_settings[drvno].bti_mode = 4
-settings.camera_settings[drvno].SENSOR_TYPE = 3
 # 0=PDA , 1=IR, 2=FFT, 3=CMOS, 4=HSVIS, 5=HSIR
-settings.camera_settings[drvno].CAMERA_SYSTEM = 1
+settings.camera_settings[drvno].SENSOR_TYPE = 2
 #0=3001, 1=3010, 2=3030
-settings.camera_settings[drvno].CAMCNT = 2
-settings.camera_settings[drvno].PIXEL = 1088
-settings.camera_settings[drvno].stime_in_microsec = 541
+settings.camera_settings[drvno].CAMERA_SYSTEM = 1
+
+settings.camera_settings[drvno].CAMCNT = 1
+settings.camera_settings[drvno].PIXEL = 576
+# Starvalue of exposure_time  **********************************************************
+settings.camera_settings[drvno].stime_in_microsec = 100
 settings.camera_settings[drvno].btime_in_microsec = 10
 settings.camera_settings[drvno].fft_mode = 0
-settings.camera_settings[drvno].FFT_LINES = 64
+settings.camera_settings[drvno].FFT_LINES = 8
 settings.camera_settings[drvno].lines_binning = 1
 settings.camera_settings[drvno].number_of_regions = 5
 settings.camera_settings[drvno].region_size[0] = 10
@@ -115,7 +117,7 @@ settings.camera_settings[drvno].region_size[2] = 10
 settings.camera_settings[drvno].region_size[3] = 50
 settings.camera_settings[drvno].region_size[4] = 8
 settings.camera_settings[drvno].use_software_polling = 0
-settings.camera_settings[drvno].VFREQ = 3
+settings.camera_settings[drvno].VFREQ = 7
 settings.camera_settings[drvno].dac_output[0][0] = 53256
 settings.camera_settings[drvno].dac_output[0][1] = 53291
 settings.camera_settings[drvno].dac_output[0][2] = 53538
@@ -143,27 +145,18 @@ if(status != 0):
 # create an empty list to store the data
 list_x = []
 list_y = []
+#  ***********************************************************
 # plot this pixel
-pixel_plot = 363
-# this is the exposure time at which the sweep starts
-start_value = settings.camera_settings[drvno].stime_in_microsec
-# do the first measurements with step_size
-step_size1_measurement_cnt = 200
-# this is the exposure time at which the step size changes
-value_step2 = start_value + step_size1_measurement_cnt
-# this is the exposure time at which the sweep stops
-stop_value = 21000
-# this is the step size for the first measurements
-step_size = 1
-# after the count of measurements of step_size1_measurement_cnt are done change the step size to step_size2
-step_size2 = 10
-measurement_cnt = int((value_step2 - start_value) / step_size) + int((stop_value - value_step2) / step_size2)
+pixel_plot = 390
+
 # Create an c-style uint16 array of size pixel which is initialized to 0
 frame_buffer = (c_uint16 * settings.camera_settings[0].PIXEL)(0)
 ptr_frame_buffer = pointer(frame_buffer)
 
-for i in range(measurement_cnt):
-	print("Measurement " + str(i + 1) + " of " + str(measurement_cnt) + ", stime = " + str(settings.camera_settings[drvno].stime_in_microsec) + " µs")
+measurement_cnt1 = 30
+step_size1 = 100
+for i in range(measurement_cnt1):
+	print("Range 1: Measurement " + str(i + 1) + " of " + str(measurement_cnt1) + ", stime = " + str(settings.camera_settings[drvno].stime_in_microsec) + " µs")
 	# Set all settings with the earlier created settings struct
 	status = dll.DLLSetGlobalSettings(settings)
 	if(status != 0):
@@ -183,17 +176,69 @@ for i in range(measurement_cnt):
 	# Convert the c-style array to a python list
 	list_x.append(settings.camera_settings[drvno].stime_in_microsec)
 	list_y.append(frame_buffer[pixel_plot])
-	if i < step_size1_measurement_cnt:
-		settings.camera_settings[drvno].stime_in_microsec += step_size
-	else:
-		settings.camera_settings[drvno].stime_in_microsec += step_size2
+	settings.camera_settings[drvno].stime_in_microsec += step_size1
+
+
+measurement_cnt2 = 10 
+step_size2= 200
+for i in range(measurement_cnt2):
+	print("Range 2: Measurement " + str(i + 1) + " of " + str(measurement_cnt2) + ", stime = " + str(settings.camera_settings[drvno].stime_in_microsec) + " µs")
+	# Set all settings with the earlier created settings struct
+	status = dll.DLLSetGlobalSettings(settings)
+	if(status != 0):
+		raise BaseException(dll.DLLConvertErrorCodeToMsg(status))
+	# Initialize the measurement. The settings from the step before will be used for this.
+	status = dll.DLLInitMeasurement()
+	if(status != 0):
+		raise BaseException(dll.DLLConvertErrorCodeToMsg(status))
+	# Start the measurement. This is the blocking call, which means it will return when the measurement is finished. This is done to ensure that no data access happens before all data is collected.
+	status = dll.DLLStartMeasurement_blocking()
+	if(status != 0):
+		raise BaseException(dll.DLLConvertErrorCodeToMsg(status))
+	# Get the data of one frame. Sample settings.nos-1, block 0, camera 0
+	status = dll.DLLCopyOneSample(drvno, settings.nos-1, 0, 0, ptr_frame_buffer)
+	if(status != 0):
+		raise BaseException(dll.DLLConvertErrorCodeToMsg(status))
+	# Convert the c-style array to a python list
+	list_x.append(settings.camera_settings[drvno].stime_in_microsec)
+	list_y.append(frame_buffer[pixel_plot])
+	settings.camera_settings[drvno].stime_in_microsec += step_size2
+
+measurement_cnt3= 25
+step_size3 = 1000
+for i in range(measurement_cnt3):
+	print("Range 3: Measurement " + str(i + 1) + " of " + str(measurement_cnt3) + ", stime = " + str(settings.camera_settings[drvno].stime_in_microsec) + " µs")
+	# Set all settings with the earlier created settings struct
+	status = dll.DLLSetGlobalSettings(settings)
+	if(status != 0):
+		raise BaseException(dll.DLLConvertErrorCodeToMsg(status))
+	# Initialize the measurement. The settings from the step before will be used for this.
+	status = dll.DLLInitMeasurement()
+	if(status != 0):
+		raise BaseException(dll.DLLConvertErrorCodeToMsg(status))
+	# Start the measurement. This is the blocking call, which means it will return when the measurement is finished. This is done to ensure that no data access happens before all data is collected.
+	status = dll.DLLStartMeasurement_blocking()
+	if(status != 0):
+		raise BaseException(dll.DLLConvertErrorCodeToMsg(status))
+	# Get the data of one frame. Sample settings.nos-1, block 0, camera 0
+	status = dll.DLLCopyOneSample(drvno, settings.nos-1, 0, 0, ptr_frame_buffer)
+	if(status != 0):
+		raise BaseException(dll.DLLConvertErrorCodeToMsg(status))
+	# Convert the c-style array to a python list
+	list_x.append(settings.camera_settings[drvno].stime_in_microsec)
+	list_y.append(frame_buffer[pixel_plot])
+	settings.camera_settings[drvno].stime_in_microsec += step_size3
 
 # Plot
 plt.figure(layout="constrained")
+# ****************************************************************
+plt.suptitle("FLCC3010-FFT S9037-0902 ")
 plt.subplot(211)
 plt.plot(list_x, list_y)
-plt.yscale('linear')
 plt.xscale('linear')
+plt.yscale('linear')
+#plt.ylim(0, 20000) #14 bit
+plt.ylim(0, 70000)  #16 bit
 plt.xlabel('stime in µs')
 plt.title('linear')
 plt.grid(True)
