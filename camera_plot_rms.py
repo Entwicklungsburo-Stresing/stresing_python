@@ -1,4 +1,4 @@
-# This python example was created with DLL version 4.17.7
+# This python example was created with DLL version 4.17.8
 # This script initializes the camera, does one measurement, reads the data and plots the data. The data access happens after the complete measurement is done. This example is written for 1 camera on 1 PCIe board.
 
 # ctypes is used for communication with the DLL 
@@ -123,16 +123,8 @@ status = dll.DLLInitDriver(ptr_number_of_boards)
 # Check the status code after each DLL call. When it is not 0, which means there is no error, an exception is raised. The error message will be displayed and the script will stop.
 if(status != 0):
 	raise BaseException(dll.DLLConvertErrorCodeToMsg(status))
-# Initialize the PCIe board.
-status = dll.DLLInitBoard()
-if(status != 0):
-	raise BaseException(dll.DLLConvertErrorCodeToMsg(status))
-# Set all settings with the earlier created settings struct
-status = dll.DLLSetGlobalSettings(settings)
-if(status != 0):
-	raise BaseException(dll.DLLConvertErrorCodeToMsg(status))
-# Initialize the measurement. The settings from the step before will be used for this.
-status = dll.DLLInitMeasurement()
+# Initialize the measurement.
+status = dll.DLLInitMeasurement(settings)
 if(status != 0):
 	raise BaseException(dll.DLLConvertErrorCodeToMsg(status))
 
