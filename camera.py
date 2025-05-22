@@ -1,6 +1,6 @@
 ## @file: camera.py
 # @brief: This script shows how to operate the Stresing camera using the DLL interface.
-# @details: This script initializes the camera, does one measurement, reads the data and plots the data. The data access happens after the complete measurement is done. This example is written for 1 camera on 1 PCIe board. This python example was created with DLL version 4.17.8
+# @details: This script initializes the camera, does one measurement, reads the data and plots the data. The data access happens after the complete measurement is done. This example is written for 1 camera on 1 PCIe board. This python example was created with DLL version 4.18.0
 # @author: Florian Hahn
 # @date: 13.10.2022
 # @copyright: Copyright (c) 2022, Entwicklungsbüro Stresing. Released as public domain under the Unlicense.
@@ -67,7 +67,8 @@ class camera_settings(Structure):
 		("monitor", c_uint32),
 		("manipulate_data_mode", c_uint32),
 		("manipulate_data_custom_factor", c_double),
-		("ec_legacy_mode", c_uint32),]
+		("ec_legacy_mode", c_uint32),
+		("stime_resolution_mode", c_uint32),]
 
 class measurement_settings(Structure):
 	_fields_ = [("board_sel", c_uint32),

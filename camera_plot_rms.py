@@ -1,6 +1,6 @@
 ## @file: camera_plot_rms.py
 # @brief: This script does a sweep of the stime parameter.
-# @details: This python example was created with DLL version 4.17.8
+# @details: This python example was created with DLL version 4.18.0
 # @author: Florian Hahn
 # @date: 25.02.2025
 # @copyright: Copyright (c) 2022, Entwicklungsbüro Stresing. Released as public domain under the Unlicense.
@@ -65,7 +65,8 @@ class camera_settings(Structure):
 		("monitor", c_uint32),
 		("manipulate_data_mode", c_uint32),
 		("manipulate_data_custom_factor", c_double),
-		("ec_legacy_mode", c_uint32),]
+		("ec_legacy_mode", c_uint32),
+		("stime_resolution_mode", c_uint32),]
 
 class measurement_settings(Structure):
 	_fields_ = [("board_sel", c_uint32),
