@@ -1,9 +1,9 @@
-## @file: camera_plot_rms.py
+## @file: plot_rms.py
 # @brief: This script does a sweep of the stime parameter.
-# @details: This python example was created with DLL version 4.18.0
+# @details:
 # @author: Florian Hahn
 # @date: 25.02.2025
-# @copyright: Copyright (c) 2022, Entwicklungsbüro Stresing. Released as public domain under the Unlicense.
+# @copyright: Copyright (c) 2025, Entwicklungsbüro Stresing. Released as public domain under the Unlicense.
 
 # matplotlib is used for the data plot
 import matplotlib.pyplot as plt

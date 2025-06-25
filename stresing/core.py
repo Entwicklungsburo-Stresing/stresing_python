@@ -1,3 +1,10 @@
+## @file: core.py
+# @brief: This module provides the core functionality for interacting with the Stresing camera system.
+# @details: The python module workes as a wrapper for the ESLSCDLL library.
+# @author: Florian Hahn
+# @date: 25.06.2025
+# @copyright: Copyright (c) 2025, Entwicklungsbüro Stresing. Released under the LPGL-3.0.
+
 import ctypes
 from ctypes import c_uint8, POINTER, c_uint32, c_double, Structure, c_char, c_int, c_char_p, c_uint16, c_int64
 import os

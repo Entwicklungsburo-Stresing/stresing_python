@@ -1,9 +1,9 @@
-## @file: camera.py
-# @brief: This script shows how to operate the Stresing camera using the DLL interface.
-# @details: This script initializes the camera, does one measurement, reads the data and plots the data. The data access happens after the complete measurement is done. This example is written for 1 camera on 1 PCIe board. This python example was created with DLL version 4.18.0
+## @file: shutter.py
+# @brief: This script is closing and opening all shutters 10 times once per second.
+# @details:
 # @author: Florian Hahn
-# @date: 13.10.2022
-# @copyright: Copyright (c) 2022, Entwicklungsbüro Stresing. Released as public domain under the Unlicense.
+# @date: 19.06.2025
+# @copyright: Copyright (c) 202, Entwicklungsbüro Stresing. Released as public domain under the Unlicense.
 
 import time
 import stresing
