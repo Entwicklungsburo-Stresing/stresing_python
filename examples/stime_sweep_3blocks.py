@@ -88,7 +88,7 @@ for i in range(measurement_cnt2):
 measurement_cnt3= 25
 step_size3 = 1000
 for i in range(measurement_cnt3):
-	print("Range 3: Measurement " + str(i + 1) + " of " + str(measurement_cnt3) + ", stime = " + str(settings.camera_settings[drvno].stime_in_microsec) + " µs")
+	print("Range 3: Measurement " + str(i + 1) + " of " + str(measurement_cnt3) + ", stime = " + str(stresing.settings.camera_settings[drvno].stime_in_microsec) + " µs")
 	# Initialize the measurement.
 	stresing.init_measurement()
 	# Start the measurement. This is the blocking call, which means it will return when the measurement is finished. This is done to ensure that no data access happens before all data is collected.
