@@ -576,4 +576,28 @@ def set_shutter_states(drvno: int, states: int) -> None:
 	status = dll.DLLSetShutterStates(c_uint32(drvno), c_uint16(states))
 	if status != 0:
 		raise Exception(__convert_error_code_to_msg(status))
-	
+
+def calc_trms(drvno: int, first_sample: int, last_sample: int, tmrs_pixel: int, cam_pos: int) -> tuple[float, float]:
+	"""
+	Calculate the RMS (Root Mean Square) for a specific camera and pixel.
+
+	Args:
+		drvno (int): The board number (driver number).
+		first_sample (int): The first sample index.
+		last_sample (int): The last sample index.
+		tmrs_pixel (int): The pixel index for which to calculate the RMS.
+		cam_pos (int): The camera position.
+
+	Returns:
+		tuple(float, float): A tuple containing the mean value and the RMS.
+
+	Raises:
+		Exception: If the DLL call returns a non-zero status (error), an exception is raised with the error message.
+	"""
+	dll.DLLCalcTrms.argtypes = [c_uint32, c_uint32, c_uint32, c_uint32, c_uint16, POINTER(c_double), POINTER(c_double)]
+	mean = c_double(0.0)
+	rms = c_double(0.0)
+	status = dll.DLLCalcTrms(c_uint32(drvno), c_uint32(first_sample), c_uint32(last_sample), c_uint32(tmrs_pixel), c_uint16(cam_pos), ctypes.byref(mean), ctypes.byref(rms))
+	if status != 0:
+		raise Exception(__convert_error_code_to_msg(status))
+	return mean.value, rms.value
