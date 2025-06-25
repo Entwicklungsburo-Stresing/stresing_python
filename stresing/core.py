@@ -1,5 +1,5 @@
 import ctypes
-from ctypes import c_uint8, POINTER, c_uint32, c_double, Structure, c_char, c_int, c_char_p, c_uint16
+from ctypes import c_uint8, POINTER, c_uint32, c_double, Structure, c_char, c_int, c_char_p, c_uint16, c_int64
 import os
 
 # Load ESLSCDLL.dll
@@ -129,7 +129,7 @@ def copy_one_sample(drvno: int, sample: int, block: int, camera: int) -> list[in
 	_camera = c_uint16(camera)
 	frame_buffer = (c_uint16 * settings.camera_settings[_drvno.value].PIXEL)(0)
 	dll.DLLCopyOneSample.argtypes = [c_uint32, c_uint32, c_uint32, c_uint16, POINTER(c_uint16)]
-	status = dll.DLLCopyOneSample(_drvno, _sample, _block, _camera, ctypes.byref(frame_buffer))
+	status = dll.DLLCopyOneSample(_drvno, _sample, _block, _camera, frame_buffer)
 	if status != 0:
 		raise Exception(__convert_error_code_to_msg(status))
 	return [frame_buffer[i] for i in range(settings.camera_settings[_drvno.value].PIXEL)]
@@ -144,7 +144,7 @@ def copy_one_sample_multiple_boards(sample: int, block: int, camera: int) -> lis
 	frame_buffer3 = (c_uint16 * settings.camera_settings[3].PIXEL)(0)
 	frame_buffer4 = (c_uint16 * settings.camera_settings[4].PIXEL)(0)
 	dll.DLLCopyOneSample_multipleBoards.argtypes = [c_uint32, c_uint32, c_uint16, POINTER(c_uint16), POINTER(c_uint16), POINTER(c_uint16), POINTER(c_uint16), POINTER(c_uint16)]
-	status = dll.DLLCopyOneSample_multipleBoards(_sample, _block, _camera, ctypes.byref(frame_buffer0), ctypes.byref(frame_buffer1), ctypes.byref(frame_buffer2), ctypes.byref(frame_buffer3), ctypes.byref(frame_buffer4))
+	status = dll.DLLCopyOneSample_multipleBoards(_sample, _block, _camera, frame_buffer0, frame_buffer1, frame_buffer2, frame_buffer3, frame_buffer4)
 	if status != 0:
 		raise Exception(__convert_error_code_to_msg(status))
 	all_buffers = [
@@ -166,103 +166,159 @@ def copy_one_block(drvno: int, block: int) -> list[int]:
 		raise Exception(__convert_error_code_to_msg(status))
 	return [frame_buffer0[i] for i in range(settings.camera_settings[_drvno.value].PIXEL)]
 
-def copy_one_block_multiple_boards(block, pdest0, pdest1, pdest2, pdest3, pdest4):
-	block = c_uint16(block)
+def copy_one_block_multiple_boards(block: int) -> list[list[int]]:
+	_block = c_uint16(block)
+	frame_buffer0 = (c_uint16 * settings.camera_settings[0].PIXEL)(0)
+	frame_buffer1 = (c_uint16 * settings.camera_settings[1].PIXEL)(0)
+	frame_buffer2 = (c_uint16 * settings.camera_settings[2].PIXEL)(0)
+	frame_buffer3 = (c_uint16 * settings.camera_settings[3].PIXEL)(0)
+	frame_buffer4 = (c_uint16 * settings.camera_settings[4].PIXEL)(0)
 	dll.DLLCopyOneBlock_multipleBoards.argtypes = [c_uint16, POINTER(c_uint16), POINTER(c_uint16), POINTER(c_uint16), POINTER(c_uint16), POINTER(c_uint16)]
-	status = dll.DLLCopyOneBlock_multipleBoards(block, pdest0, pdest1, pdest2, pdest3, pdest4)
+	status = dll.DLLCopyOneBlock_multipleBoards(_block, frame_buffer0, frame_buffer1, frame_buffer2, frame_buffer3, frame_buffer4)
 	if status != 0:
 		raise Exception(__convert_error_code_to_msg(status))
+	all_buffers = [
+		[frame_buffer0[i] for i in range(settings.camera_settings[0].PIXEL)],
+		[frame_buffer1[i] for i in range(settings.camera_settings[1].PIXEL)],
+		[frame_buffer2[i] for i in range(settings.camera_settings[2].PIXEL)],
+		[frame_buffer3[i] for i in range(settings.camera_settings[3].PIXEL)],
+		[frame_buffer4[i] for i in range(settings.camera_settings[4].PIXEL)]
+	]
+	return all_buffers
 
-def copy_one_block_of_one_camera(drvno, block, camera, pdest):
-	drvno = c_uint32(drvno)
-	block = c_uint32(block)
-	camera = c_uint16(camera)
+def copy_one_block_of_one_camera(drvno: int, block: int, camera: int) -> list[int]:
+	_drvno = c_uint32(drvno)
+	_block = c_uint32(block)
+	_camera = c_uint16(camera)
+	frame_buffer0 = (c_uint16 * settings.camera_settings[_drvno.value].PIXEL)(0)
 	dll.DLLCopyOneBlockOfOneCamera.argtypes = [c_uint32, c_uint32, c_uint16, POINTER(c_uint16)]
-	status = dll.DLLCopyOneBlockOfOneCamera(drvno, block, camera, pdest)
+	status = dll.DLLCopyOneBlockOfOneCamera(_drvno, _block, _camera, frame_buffer0)
 	if status != 0:
 		raise Exception(__convert_error_code_to_msg(status))
+	return [frame_buffer0[i] for i in range(settings.camera_settings[_drvno.value].PIXEL)]
 
-def copy_one_block_of_one_camera_multiple_boards(block, camera, pdest0, pdest1, pdest2, pdest3, pdest4):
-	block = c_uint16(block)
-	camera = c_uint16(camera)
+def copy_one_block_of_one_camera_multiple_boards(block: int, camera: int) -> list[list[int]]:
+	_block = c_uint16(block)
+	_camera = c_uint16(camera)
+	frame_buffer0 = (c_uint16 * settings.camera_settings[0].PIXEL)(0)
+	frame_buffer1 = (c_uint16 * settings.camera_settings[1].PIXEL)(0)
+	frame_buffer2 = (c_uint16 * settings.camera_settings[2].PIXEL)(0)
+	frame_buffer3 = (c_uint16 * settings.camera_settings[3].PIXEL)(0)
+	frame_buffer4 = (c_uint16 * settings.camera_settings[4].PIXEL)(0)
 	dll.DLLCopyOneBlockOfOneCamera_multipleBoards.argtypes = [c_uint16, c_uint16, POINTER(c_uint16), POINTER(c_uint16), POINTER(c_uint16), POINTER(c_uint16), POINTER(c_uint16)]
-	status = dll.DLLCopyOneBlockOfOneCamera_multipleBoards(block, camera, pdest0, pdest1, pdest2, pdest3, pdest4)
+	status = dll.DLLCopyOneBlockOfOneCamera_multipleBoards(_block, _camera, frame_buffer0, frame_buffer1, frame_buffer2, frame_buffer3, frame_buffer4)
 	if status != 0:
 		raise Exception(__convert_error_code_to_msg(status))
+	all_buffers = [
+		[frame_buffer0[i] for i in range(settings.camera_settings[0].PIXEL)],
+		[frame_buffer1[i] for i in range(settings.camera_settings[1].PIXEL)],
+		[frame_buffer2[i] for i in range(settings.camera_settings[2].PIXEL)],
+		[frame_buffer3[i] for i in range(settings.camera_settings[3].PIXEL)],
+		[frame_buffer4[i] for i in range(settings.camera_settings[4].PIXEL)]
+	]
+	return all_buffers
 
-def copy_all_data(drvno, pdest):
-	drvno = c_uint32(drvno)
+def copy_all_data(drvno: int) -> list[int]:
+	_drvno = c_uint32(drvno)
+	frame_buffer0 = (c_uint16 * settings.camera_settings[0].PIXEL)(0)
 	dll.DLLCopyAllData.argtypes = [c_uint32, POINTER(c_uint16)]
-	status = dll.DLLCopyAllData(drvno, pdest)
+	status = dll.DLLCopyAllData(_drvno, frame_buffer0)
 	if status != 0:
 		raise Exception(__convert_error_code_to_msg(status))
+	return [frame_buffer0[i] for i in range(settings.camera_settings[_drvno.value].PIXEL)]
 
-def copy_all_data_multiple_boards(pdest0, pdest1, pdest2, pdest3, pdest4):
+def copy_all_data_multiple_boards() -> list[list[int]]:
+	frame_buffer0 = (c_uint16 * settings.camera_settings[0].PIXEL)(0)
+	frame_buffer1 = (c_uint16 * settings.camera_settings[1].PIXEL)(0)
+	frame_buffer2 = (c_uint16 * settings.camera_settings[2].PIXEL)(0)
+	frame_buffer3 = (c_uint16 * settings.camera_settings[3].PIXEL)(0)
+	frame_buffer4 = (c_uint16 * settings.camera_settings[4].PIXEL)(0)
 	dll.DLLCopyAllData_multipleBoards.argtypes = [POINTER(c_uint16), POINTER(c_uint16), POINTER(c_uint16), POINTER(c_uint16), POINTER(c_uint16)]
-	status = dll.DLLCopyAllData_multipleBoards(pdest0, pdest1, pdest2, pdest3, pdest4)
+	status = dll.DLLCopyAllData_multipleBoards(frame_buffer0, frame_buffer1, frame_buffer2, frame_buffer3, frame_buffer4)
 	if status != 0:
 		raise Exception(__convert_error_code_to_msg(status))
+	all_buffers = [
+		[frame_buffer0[i] for i in range(settings.camera_settings[0].PIXEL)],
+		[frame_buffer1[i] for i in range(settings.camera_settings[1].PIXEL)],
+		[frame_buffer2[i] for i in range(settings.camera_settings[2].PIXEL)],
+		[frame_buffer3[i] for i in range(settings.camera_settings[3].PIXEL)],
+		[frame_buffer4[i] for i in range(settings.camera_settings[4].PIXEL)]
+	]
+	return all_buffers
 
-def copy_data_arbitrary(drvno, sample, block, camera, pixel, length_in_pixel, pdest):
-	drvno = c_uint32(drvno)
-	sample = c_uint32(sample)
-	block = c_uint32(block)
-	camera = c_uint16(camera)
-	pixel = c_uint32(pixel)
-	length_in_pixel = c_uint32(length_in_pixel)
+def copy_data_arbitrary(drvno: int, sample: int, block: int, camera: int, pixel: int, length_in_pixel: int) -> list[int]:
+	_drvno = c_uint32(drvno)
+	_sample = c_uint32(sample)
+	_block = c_uint32(block)
+	_camera = c_uint16(camera)
+	_pixel = c_uint32(pixel)
+	_length_in_pixel = c_uint32(length_in_pixel)
+	frame_buffer0 = (c_uint16 * settings.camera_settings[_drvno.value].PIXEL)(0)
 	dll.DLLCopyDataArbitrary.argtypes = [c_uint32, c_uint32, c_uint32, c_uint16, c_uint32, c_uint32, POINTER(c_uint16)]
-	status = dll.DLLCopyDataArbitrary(drvno, sample, block, camera, pixel, length_in_pixel, pdest)
+	status = dll.DLLCopyDataArbitrary(_drvno, _sample, _block, _camera, _pixel, _length_in_pixel, frame_buffer0)
 	if status != 0:
 		raise Exception(__convert_error_code_to_msg(status))
+	return [frame_buffer0[i] for i in range(settings.camera_settings[_drvno.value].PIXEL)]
 
-def get_one_sample_pointer(drvno, sample, block, camera):
-	drvno = c_uint32(drvno)
-	sample = c_uint32(sample)
-	block = c_uint32(block)
-	camera = c_uint16(camera)
+def get_one_sample_pointer(drvno: int, sample: int, block: int, camera: int) -> tuple[POINTER, int]:
+	_drvno = c_uint32(drvno)
+	_sample = c_uint32(sample)
+	_block = c_uint32(block)
+	_camera = c_uint16(camera)
 	dll.DLLGetOneSamplePointer.argtypes = [c_uint32, c_uint32, c_uint32, c_uint16, POINTER(POINTER(c_uint16)), POINTER(ctypes.c_size_t)]
-	pdest = POINTER(c_uint16)()
+	data_pointer = POINTER(c_uint16)()
 	bytes_to_end_of_buffer = ctypes.c_size_t()
-	status = dll.DLLGetOneSamplePointer(drvno, sample, block, camera, ctypes.byref(pdest), ctypes.byref(bytes_to_end_of_buffer))
+	status = dll.DLLGetOneSamplePointer(_drvno, _sample, _block, _camera, ctypes.byref(data_pointer), ctypes.byref(bytes_to_end_of_buffer))
 	if status != 0:
 		raise Exception(__convert_error_code_to_msg(status))
-	return pdest, bytes_to_end_of_buffer.value
+	return data_pointer, bytes_to_end_of_buffer.value
 
-def get_one_block_pointer(drvno, block):
-	drvno = c_uint32(drvno)
-	block = c_uint16(block)
+def get_one_block_pointer(drvno: int, block: int) -> tuple[POINTER, int]:
+	_drvno = c_uint32(drvno)
+	_block = c_uint16(block)
 	dll.DLLGetOneBlockPointer.argtypes = [c_uint32, c_uint16, POINTER(POINTER(c_uint16)), POINTER(ctypes.c_size_t)]
-	pdest = POINTER(c_uint16)()
+	data_pointer = POINTER(c_uint16)()
 	bytes_to_end_of_buffer = ctypes.c_size_t()
-	status = dll.DLLGetOneBlockPointer(drvno, block, ctypes.byref(pdest), ctypes.byref(bytes_to_end_of_buffer))
+	status = dll.DLLGetOneBlockPointer(_drvno, _block, ctypes.byref(data_pointer), ctypes.byref(bytes_to_end_of_buffer))
 	if status != 0:
 		raise Exception(__convert_error_code_to_msg(status))
-	return pdest, bytes_to_end_of_buffer.value
+	return data_pointer, bytes_to_end_of_buffer.value
 
-def get_all_data_pointer(drvno):
-	drvno = c_uint32(drvno)
+def get_all_data_pointer(drvno: int) -> tuple[POINTER, int]:
+	_drvno = c_uint32(drvno)
 	dll.DLLGetAllDataPointer.argtypes = [c_uint32, POINTER(POINTER(c_uint16)), POINTER(ctypes.c_size_t)]
-	pdest = POINTER(c_uint16)()
+	data_pointer = POINTER(c_uint16)()
 	bytes_to_end_of_buffer = ctypes.c_size_t()
-	status = dll.DLLGetAllDataPointer(drvno, ctypes.byref(pdest), ctypes.byref(bytes_to_end_of_buffer))
+	status = dll.DLLGetAllDataPointer(_drvno, ctypes.byref(data_pointer), ctypes.byref(bytes_to_end_of_buffer))
 	if status != 0:
 		raise Exception(__convert_error_code_to_msg(status))
-	return pdest, bytes_to_end_of_buffer.value
+	return data_pointer, bytes_to_end_of_buffer.value
 
-def get_pixel_pointer(drvno, pixel, sample, block, camera):
-	drvno = c_uint32(drvno)
-	pixel = c_uint16(pixel)
-	sample = c_uint32(sample)
-	block = c_uint32(block)
-	camera = c_uint16(camera)
+def get_pixel_pointer(drvno: int, pixel: int, sample: int, block: int, camera: int) -> tuple[POINTER, int]:
+	_drvno = c_uint32(drvno)
+	_pixel = c_uint16(pixel)
+	_sample = c_uint32(sample)
+	_block = c_uint32(block)
+	_camera = c_uint16(camera)
 	dll.DLLGetPixelPointer.argtypes = [c_uint32, c_uint16, c_uint32, c_uint32, c_uint16, POINTER(POINTER(c_uint16)), POINTER(ctypes.c_size_t)]
 	pdest = POINTER(c_uint16)()
 	bytes_to_end_of_buffer = ctypes.c_size_t()
-	status = dll.DLLGetPixelPointer(drvno, pixel, sample, block, camera, ctypes.byref(pdest), ctypes.byref(bytes_to_end_of_buffer))
+	status = dll.DLLGetPixelPointer(_drvno, _pixel, _sample, _block, _camera, ctypes.byref(pdest), ctypes.byref(bytes_to_end_of_buffer))
 	if status != 0:
 		raise Exception(__convert_error_code_to_msg(status))
+	return pdest, bytes_to_end_of_buffer.value
 
 def exit_driver():
 	status = dll.DLLExitDriver()
 	if(status != 0):
 		raise Exception(__convert_error_code_to_msg(status))
+	
+def get_current_scan_number(drvno: int) -> tuple[int, int]:
+	_drvno = c_uint32(drvno)
+	cur_sample = c_int64(-2)
+	cur_block = c_int64(-2)
+	dll.DLLGetCurrentScanNumber.argtypes = [c_uint32, POINTER(c_int64), POINTER(c_int64)]
+	status = dll.DLLGetCurrentScanNumber(_drvno, ctypes.byref(cur_sample), ctypes.byref(cur_block))
+	if status != 0:
+		raise Exception(__convert_error_code_to_msg(status))
+	return cur_sample.value, cur_block.value

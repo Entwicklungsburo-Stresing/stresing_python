@@ -15,3 +15,9 @@ The source code of the DLL ESLSCDLL.dll can be found in the repository [EBST_CAM
 
 ## Documentation
 The script is following the basic operation as described in the chapter *How to operate Stresing cameras* of the [software documentation](https://entwicklungsburo-stresing.github.io/). The settings must match your camera system. You can find a description of every setting [here](https://entwicklungsburo-stresing.github.io/structmeasurement__settings.html).
+
+## Examples
+You can run examples with
+```
+python.exe -m examples.simple_blocking_measurement
+```

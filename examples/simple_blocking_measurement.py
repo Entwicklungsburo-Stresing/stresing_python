@@ -9,8 +9,6 @@ import stresing
 # matplotlib is used for the data plot
 import matplotlib.pyplot as plt
 
-use_blocking_call = True
-
 # Initialize the driver.
 number_of_boards = stresing.init_driver()
 
@@ -52,27 +50,11 @@ stresing.settings.camera_settings[drvno].dac_output[0][7] = 55000
 
 # Initialize the measurement.
 stresing.init_measurement()
-
-if use_blocking_call:
-	# Start the measurement. This is the blocking call, which means it will return when the measurement is finished. This is done to ensure that no data access happens before all data is collected.
-	stresing.start_measurement_blocking()
-else:
-	# Start the measurement. This is the nonblocking call, which means it will return immediately. 
-	stresing.start_measurement_nonblocking()
-
-	cur_sample = c_int64(-2)
-	ptr_cur_sample = pointer(cur_sample)
-	cur_block = c_int64(-2)
-	ptr_cur_block = pointer(cur_block)
-
-	while cur_sample.value < settings.nos-1 or cur_block.value < settings.nob-1:
-		dll.DLLGetCurrentScanNumber(drvno, ptr_cur_sample, ptr_cur_block)
-		print("sample: "+str(cur_sample.value)+" block: "+str(cur_block.value))
-
+# Start the measurement. This is the blocking call, which means it will return when the measurement is finished. This is done to ensure that no data access happens before all data is collected.
+stresing.start_measurement_blocking()
 frame_buffer = stresing.copy_one_sample(drvno, 5, 0 ,0)
 # Plot the frame
 plt.plot(frame_buffer)
 plt.show()
-
 # Exit the driver
-status = stresing.exitDriver()
+status = stresing.exit_driver()
