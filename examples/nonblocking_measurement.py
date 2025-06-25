@@ -62,7 +62,6 @@ while cur_sample < stresing.settings.nos-1 or cur_block < stresing.settings.nob-
 	print("sample: "+str(cur_sample)+" block: "+str(cur_block))
 	time.sleep(1)
 	
-
 frame_buffer = stresing.copy_one_sample(drvno, 5, 0 ,0)
 # Plot the frame
 plt.plot(frame_buffer)

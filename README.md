@@ -19,5 +19,5 @@ The script is following the basic operation as described in the chapter *How to 
 ## Examples
 You can run examples with
 ```
-python.exe -m examples.simple_blocking_measurement
+python -m examples.simple_blocking_measurement
 ```

@@ -560,3 +560,20 @@ def get_current_scan_number(drvno: int) -> tuple[int, int]:
 	if status != 0:
 		raise Exception(__convert_error_code_to_msg(status))
 	return cur_sample.value, cur_block.value
+
+def set_shutter_states(drvno: int, states: int) -> None:
+	"""
+	Set the shutter states for the specified board.
+
+	Args:
+		drvno (int): The board number (driver number) to set the shutter states for.
+		states (int): The shutter states are represented as bits in one integer. Bits 0 to 3 corresponds to the 4 shutters.
+
+	Raises:
+		Exception: If the DLL call returns a non-zero status (error), an exception is raised with the error message.
+	"""
+	dll.DLLSetShutterStates.argtypes = [c_uint32, c_uint16]
+	status = dll.DLLSetShutterStates(c_uint32(drvno), c_uint16(states))
+	if status != 0:
+		raise Exception(__convert_error_code_to_msg(status))
+	
