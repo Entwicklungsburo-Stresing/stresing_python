@@ -1,6 +1,6 @@
 # Python script for Stresing cameras
 
-In this repository you can find a python script [camera.py](./camera.py) for operating [Stresing](https://stresing.de) cameras. This script is only an example to show you, how to use our library with python and do a very basic measurement operation.
+In this repository you can find the python module *stresing* for operating [Stresing](https://stresing.de) cameras. This is located in the folder `stresing/`. You can find examples how to use this module in the folder `example/`
 
 ![screenshot of the plot](./screenshot/graph.png)
 
