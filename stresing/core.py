@@ -82,12 +82,26 @@ class measurement_settings(Structure):
 		("camera_settings", camera_settings * 5)]
 
 def __convert_error_code_to_msg(status: c_int) -> str:
-	"""Convert the error code to a c string."""
+	"""
+	Convert the error code returned by the DLL to a human-readable string message.
+
+	Args:
+		status (c_int): The error code returned by the DLL function.
+
+	Returns:
+		str: The corresponding error message as a string.
+	"""
 	dll.DLLConvertErrorCodeToMsg.argtypes = [c_int]
 	dll.DLLConvertErrorCodeToMsg.restype = c_char_p
 	return dll.DLLConvertErrorCodeToMsg(status).decode()
 
 def init_settings_struct(ms: measurement_settings):
+	"""
+	Initialize the measurement_settings structure with default values using the DLL.
+
+	Args:
+		ms (measurement_settings): The measurement_settings structure to initialize.
+	"""
 	dll.DLLInitSettingsStruct.argtypes = [POINTER(measurement_settings)]
 	dll.DLLInitSettingsStruct(ctypes.byref(ms))
 
@@ -95,6 +109,15 @@ settings = measurement_settings()
 init_settings_struct(settings)
 
 def init_driver() -> int:
+	"""
+	Initialize the driver and return the number of available boards.
+
+	Returns:
+		int: The number of available boards.
+
+	Raises:
+		Exception: If the DLL call returns a non-zero status (error), an exception is raised with the error message.
+	"""
 	_number_of_boards = c_uint8()
 	status = dll.DLLInitDriver(ctypes.byref(_number_of_boards))
 	# Check the status code after each DLL call. When it is not 0, which means there is no error, an exception is raised. The error message will be displayed and the script will stop.
@@ -103,25 +126,61 @@ def init_driver() -> int:
 	return _number_of_boards.value
 
 def init_measurement():
+	"""
+	Initialize the measurement with the current settings.
+
+	Raises:
+		Exception: If the DLL call returns a non-zero status (error), an exception is raised with the error message.
+	"""
 	dll.DLLInitMeasurement.argtypes = [measurement_settings]
 	status = dll.DLLInitMeasurement(settings)
 	if status != 0:
 		raise Exception(__convert_error_code_to_msg(status))
 
 def start_measurement_blocking():
+	"""
+	Start the measurement in blocking mode (waits until measurement is finished).
+
+	Raises:
+		Exception: If the DLL call returns a non-zero status (error), an exception is raised with the error message.
+	"""
 	status = dll.DLLStartMeasurement_blocking()
 	if status != 0:
 		raise Exception(__convert_error_code_to_msg(status))
 
 def start_measurement_nonblocking():
+	"""
+	Start the measurement in non-blocking mode (returns immediately).
+	"""
 	dll.DLLStartMeasurement_nonblocking()
 
 def abort_measurement():
+	"""
+	Abort the current measurement.
+
+	Raises:
+		Exception: If the DLL call returns a non-zero status (error), an exception is raised with the error message.
+	"""
 	status = dll.DLLAbortMeasurement()
 	if status != 0:
 		raise Exception(__convert_error_code_to_msg(status))
 
 def copy_one_sample(drvno: int, sample: int, block: int, camera: int) -> list[int]:
+	"""
+	Copy one sample from the specified board, sample, block, and camera.
+
+	Args:
+		drvno (int): Board number.
+		sample (int): Sample number.
+		block (int): Block number.
+		camera (int): Camera number.
+
+	Returns:
+		list[int]: The frame buffer data as a list of integers.
+
+	Raises:
+		Exception: If the DLL call returns a non-zero status (error), an exception is raised with the error message.
+	"""
 	# Ensure all arguments are c_uint32/c_uint16
 	_drvno = c_uint32(drvno)
 	_sample = c_uint32(sample)
@@ -135,6 +194,20 @@ def copy_one_sample(drvno: int, sample: int, block: int, camera: int) -> list[in
 	return [frame_buffer[i] for i in range(settings.camera_settings[_drvno.value].PIXEL)]
 
 def copy_one_sample_multiple_boards(sample: int, block: int, camera: int) -> list[list[int]]:
+	"""
+	Copy one sample from all boards for the specified sample, block, and camera.
+
+	Args:
+		sample (int): Sample number.
+		block (int): Block number.
+		camera (int): Camera number.
+
+	Returns:
+		list[list[int]]: A list of frame buffers for each board.
+
+	Raises:
+		Exception: If the DLL call returns a non-zero status (error), an exception is raised with the error message.
+	"""
 	_sample = c_uint32(sample)
 	_block = c_uint32(block)
 	_camera = c_uint16(camera)
@@ -157,6 +230,19 @@ def copy_one_sample_multiple_boards(sample: int, block: int, camera: int) -> lis
 	return all_buffers
 
 def copy_one_block(drvno: int, block: int) -> list[int]:
+	"""
+	Copy one block from the specified board and block number.
+
+	Args:
+		drvno (int): Board number.
+		block (int): Block number.
+
+	Returns:
+		list[int]: The frame buffer data as a list of integers.
+
+	Raises:
+		Exception: If the DLL call returns a non-zero status (error), an exception is raised with the error message.
+	"""
 	_drvno = c_uint32(drvno)
 	_block = c_uint16(block)
 	frame_buffer0 = (c_uint16 * settings.camera_settings[0].PIXEL)(0)
@@ -167,6 +253,18 @@ def copy_one_block(drvno: int, block: int) -> list[int]:
 	return [frame_buffer0[i] for i in range(settings.camera_settings[_drvno.value].PIXEL)]
 
 def copy_one_block_multiple_boards(block: int) -> list[list[int]]:
+	"""
+	Copy one block from all boards for the specified block number.
+
+	Args:
+		block (int): Block number.
+
+	Returns:
+		list[list[int]]: A list of frame buffers for each board.
+
+	Raises:
+		Exception: If the DLL call returns a non-zero status (error), an exception is raised with the error message.
+	"""
 	_block = c_uint16(block)
 	frame_buffer0 = (c_uint16 * settings.camera_settings[0].PIXEL)(0)
 	frame_buffer1 = (c_uint16 * settings.camera_settings[1].PIXEL)(0)
@@ -187,6 +285,20 @@ def copy_one_block_multiple_boards(block: int) -> list[list[int]]:
 	return all_buffers
 
 def copy_one_block_of_one_camera(drvno: int, block: int, camera: int) -> list[int]:
+	"""
+	Copy one block for a specific camera from the specified board and block number.
+
+	Args:
+		drvno (int): Board number.
+		block (int): Block number.
+		camera (int): Camera number.
+
+	Returns:
+		list[int]: The frame buffer data as a list of integers.
+
+	Raises:
+		Exception: If the DLL call returns a non-zero status (error), an exception is raised with the error message.
+	"""
 	_drvno = c_uint32(drvno)
 	_block = c_uint32(block)
 	_camera = c_uint16(camera)
@@ -198,6 +310,19 @@ def copy_one_block_of_one_camera(drvno: int, block: int, camera: int) -> list[in
 	return [frame_buffer0[i] for i in range(settings.camera_settings[_drvno.value].PIXEL)]
 
 def copy_one_block_of_one_camera_multiple_boards(block: int, camera: int) -> list[list[int]]:
+	"""
+	Copy one block for a specific camera from all boards for the specified block and camera number.
+
+	Args:
+		block (int): Block number.
+		camera (int): Camera number.
+
+	Returns:
+		list[list[int]]: A list of frame buffers for each board.
+
+	Raises:
+		Exception: If the DLL call returns a non-zero status (error), an exception is raised with the error message.
+	"""
 	_block = c_uint16(block)
 	_camera = c_uint16(camera)
 	frame_buffer0 = (c_uint16 * settings.camera_settings[0].PIXEL)(0)
@@ -219,6 +344,18 @@ def copy_one_block_of_one_camera_multiple_boards(block: int, camera: int) -> lis
 	return all_buffers
 
 def copy_all_data(drvno: int) -> list[int]:
+	"""
+	Copy all data from the specified board.
+
+	Args:
+		drvno (int): Board number.
+
+	Returns:
+		list[int]: The frame buffer data as a list of integers.
+
+	Raises:
+		Exception: If the DLL call returns a non-zero status (error), an exception is raised with the error message.
+	"""
 	_drvno = c_uint32(drvno)
 	frame_buffer0 = (c_uint16 * settings.camera_settings[0].PIXEL)(0)
 	dll.DLLCopyAllData.argtypes = [c_uint32, POINTER(c_uint16)]
@@ -228,6 +365,15 @@ def copy_all_data(drvno: int) -> list[int]:
 	return [frame_buffer0[i] for i in range(settings.camera_settings[_drvno.value].PIXEL)]
 
 def copy_all_data_multiple_boards() -> list[list[int]]:
+	"""
+	Copy all data from all boards.
+
+	Returns:
+		list[list[int]]: A list of frame buffers for each board.
+
+	Raises:
+		Exception: If the DLL call returns a non-zero status (error), an exception is raised with the error message.
+	"""
 	frame_buffer0 = (c_uint16 * settings.camera_settings[0].PIXEL)(0)
 	frame_buffer1 = (c_uint16 * settings.camera_settings[1].PIXEL)(0)
 	frame_buffer2 = (c_uint16 * settings.camera_settings[2].PIXEL)(0)
@@ -247,6 +393,24 @@ def copy_all_data_multiple_boards() -> list[list[int]]:
 	return all_buffers
 
 def copy_data_arbitrary(drvno: int, sample: int, block: int, camera: int, pixel: int, length_in_pixel: int) -> list[int]:
+	"""
+	Copy an arbitrary region of data from the specified board, sample, block, camera, pixel, and length.
+
+	Args:
+		drvno (int): Board number.
+		sample (int): Sample number.
+		block (int): Block number.
+		camera (int): Camera number.
+		pixel (int): Pixel start index.
+		length_in_pixel (int): Number of pixels to copy.
+
+	Returns:
+		list[int]: The frame buffer data as a list of integers.
+
+	Raises:
+		Exception: If the DLL call returns a non-zero status (error), an exception is raised with the error message.
+	"""
+	# Ensure all arguments are c_uint32/c_uint16
 	_drvno = c_uint32(drvno)
 	_sample = c_uint32(sample)
 	_block = c_uint32(block)
@@ -261,6 +425,21 @@ def copy_data_arbitrary(drvno: int, sample: int, block: int, camera: int, pixel:
 	return [frame_buffer0[i] for i in range(settings.camera_settings[_drvno.value].PIXEL)]
 
 def get_one_sample_pointer(drvno: int, sample: int, block: int, camera: int) -> tuple[POINTER, int]:
+	"""
+	Get a pointer to one sample for the specified board, sample, block, and camera.
+
+	Args:
+		drvno (int): Board number.
+		sample (int): Sample number.
+		block (int): Block number.
+		camera (int): Camera number.
+
+	Returns:
+		tuple[POINTER, int]: A tuple containing the data pointer and the number of bytes to the end of the buffer.
+
+	Raises:
+		Exception: If the DLL call returns a non-zero status (error), an exception is raised with the error message.
+	"""
 	_drvno = c_uint32(drvno)
 	_sample = c_uint32(sample)
 	_block = c_uint32(block)
@@ -274,6 +453,19 @@ def get_one_sample_pointer(drvno: int, sample: int, block: int, camera: int) -> 
 	return data_pointer, bytes_to_end_of_buffer.value
 
 def get_one_block_pointer(drvno: int, block: int) -> tuple[POINTER, int]:
+	"""
+	Get a pointer to one block for the specified board and block number.
+
+	Args:
+		drvno (int): Board number.
+		block (int): Block number.
+
+	Returns:
+		tuple[POINTER, int]: A tuple containing the data pointer and the number of bytes to the end of the buffer.
+
+	Raises:
+		Exception: If the DLL call returns a non-zero status (error), an exception is raised with the error message.
+	"""
 	_drvno = c_uint32(drvno)
 	_block = c_uint16(block)
 	dll.DLLGetOneBlockPointer.argtypes = [c_uint32, c_uint16, POINTER(POINTER(c_uint16)), POINTER(ctypes.c_size_t)]
@@ -285,6 +477,18 @@ def get_one_block_pointer(drvno: int, block: int) -> tuple[POINTER, int]:
 	return data_pointer, bytes_to_end_of_buffer.value
 
 def get_all_data_pointer(drvno: int) -> tuple[POINTER, int]:
+	"""
+	Get a pointer to all data for the specified board.
+
+	Args:
+		drvno (int): Board number.
+
+	Returns:
+		tuple[POINTER, int]: A tuple containing the data pointer and the number of bytes to the end of the buffer.
+
+	Raises:
+		Exception: If the DLL call returns a non-zero status (error), an exception is raised with the error message.
+	"""
 	_drvno = c_uint32(drvno)
 	dll.DLLGetAllDataPointer.argtypes = [c_uint32, POINTER(POINTER(c_uint16)), POINTER(ctypes.c_size_t)]
 	data_pointer = POINTER(c_uint16)()
@@ -295,6 +499,22 @@ def get_all_data_pointer(drvno: int) -> tuple[POINTER, int]:
 	return data_pointer, bytes_to_end_of_buffer.value
 
 def get_pixel_pointer(drvno: int, pixel: int, sample: int, block: int, camera: int) -> tuple[POINTER, int]:
+	"""
+	Get a pointer to a specific pixel for the specified board, pixel, sample, block, and camera.
+
+	Args:
+		drvno (int): Board number.
+		pixel (int): Pixel index.
+		sample (int): Sample number.
+		block (int): Block number.
+		camera (int): Camera number.
+
+	Returns:
+		tuple[POINTER, int]: A tuple containing the data pointer and the number of bytes to the end of the buffer.
+
+	Raises:
+		Exception: If the DLL call returns a non-zero status (error), an exception is raised with the error message.
+	"""
 	_drvno = c_uint32(drvno)
 	_pixel = c_uint16(pixel)
 	_sample = c_uint32(sample)
@@ -309,11 +529,29 @@ def get_pixel_pointer(drvno: int, pixel: int, sample: int, block: int, camera: i
 	return pdest, bytes_to_end_of_buffer.value
 
 def exit_driver():
+	"""
+	Exit and clean up the driver.
+
+	Raises:
+		Exception: If the DLL call returns a non-zero status (error), an exception is raised with the error message.
+	"""
 	status = dll.DLLExitDriver()
 	if(status != 0):
 		raise Exception(__convert_error_code_to_msg(status))
 	
 def get_current_scan_number(drvno: int) -> tuple[int, int]:
+	"""
+	Get the current scan number (sample and block) for the specified board.
+
+	Args:
+		drvno (int): The board number (driver number) to query.
+
+	Returns:
+		tuple[int, int]: A tuple containing the current sample number and block number.
+
+	Raises:
+		Exception: If the DLL call returns a non-zero status (error), an exception is raised with the error message.
+	"""
 	_drvno = c_uint32(drvno)
 	cur_sample = c_int64(-2)
 	cur_block = c_int64(-2)
