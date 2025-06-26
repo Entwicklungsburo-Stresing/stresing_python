@@ -407,7 +407,7 @@ def copy_data_arbitrary(drvno: int, sample: int, block: int, camera: int, pixel:
 		raise Exception(__convert_error_code_to_msg(status))
 	return [frame_buffer0[i] for i in range(settings.camera_settings[drvno].PIXEL)]
 
-def get_one_sample_pointer(drvno: int, sample: int, block: int, camera: int) -> tuple[POINTER, int]:
+def get_one_sample_pointer(drvno: int, sample: int, block: int, camera: int) -> tuple[POINTER(c_uint16), int]:
 	"""
 	Get a pointer to one sample for the specified board, sample, block, and camera.
 
@@ -431,7 +431,7 @@ def get_one_sample_pointer(drvno: int, sample: int, block: int, camera: int) -> 
 		raise Exception(__convert_error_code_to_msg(status))
 	return data_pointer, bytes_to_end_of_buffer.value
 
-def get_one_block_pointer(drvno: int, block: int) -> tuple[POINTER, int]:
+def get_one_block_pointer(drvno: int, block: int) -> tuple[POINTER(c_uint16), int]:
 	"""
 	Get a pointer to one block for the specified board and block number.
 
@@ -453,7 +453,7 @@ def get_one_block_pointer(drvno: int, block: int) -> tuple[POINTER, int]:
 		raise Exception(__convert_error_code_to_msg(status))
 	return data_pointer, bytes_to_end_of_buffer.value
 
-def get_all_data_pointer(drvno: int) -> tuple[POINTER, int]:
+def get_all_data_pointer(drvno: int) -> tuple[POINTER(c_uint16), int]:
 	"""
 	Get a pointer to all data for the specified board.
 
@@ -474,7 +474,7 @@ def get_all_data_pointer(drvno: int) -> tuple[POINTER, int]:
 		raise Exception(__convert_error_code_to_msg(status))
 	return data_pointer, bytes_to_end_of_buffer.value
 
-def get_pixel_pointer(drvno: int, pixel: int, sample: int, block: int, camera: int) -> tuple[POINTER, int]:
+def get_pixel_pointer(drvno: int, pixel: int, sample: int, block: int, camera: int) -> tuple[POINTER(c_uint16), int]:
 	"""
 	Get a pointer to a specific pixel for the specified board, pixel, sample, block, and camera.
 

@@ -43,7 +43,7 @@ stresing.init_measurement()
 # Number of data points of RMS values
 measurement_cnt = 100
 rms_pixel = 100
-rms_list = []
+rms_list: list[float] = []
 
 for i in range(measurement_cnt):
 	print("Measurement " + str(i+1) + " of " + str(measurement_cnt))
