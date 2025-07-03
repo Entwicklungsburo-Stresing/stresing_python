@@ -29,8 +29,8 @@ class camera_settings(Structure):
 	_fields_ = [("use_software_polling", c_uint32),
 		("sti_mode", c_uint32),
 		("bti_mode", c_uint32),
-		("stime_in_microsec", c_uint32),
-		("btime_in_microsec", c_uint32),
+		("stime", c_uint32),
+		("btime", c_uint32),
 		("sdat_in_10ns", c_uint32),
 		("bdat_in_10ns", c_uint32),
 		("sslope", c_uint32),
@@ -78,7 +78,7 @@ class camera_settings(Structure):
 		("manipulate_data_mode", c_uint32),
 		("manipulate_data_custom_factor", c_double),
 		("ec_legacy_mode", c_uint32),
-		("stime_resolution_mode", c_uint32),]
+		("timer_resolution_mode", c_uint32),]
 
 class measurement_settings(Structure):
 	_fields_ = [("board_sel", c_uint32),

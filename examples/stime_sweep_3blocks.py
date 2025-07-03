@@ -25,8 +25,8 @@ stresing.settings.camera_settings[drvno].CAMERA_SYSTEM = 1
 #0=3001, 1=3010, 2=3030
 stresing.settings.camera_settings[drvno].CAMCNT = 2
 stresing.settings.camera_settings[drvno].PIXEL = 1088
-stresing.settings.camera_settings[drvno].stime_in_microsec = 541
-stresing.settings.camera_settings[drvno].btime_in_microsec = 10
+stresing.settings.camera_settings[drvno].stime = 541
+stresing.settings.camera_settings[drvno].btime = 10
 stresing.settings.camera_settings[drvno].fft_mode = 0
 stresing.settings.camera_settings[drvno].FFT_LINES = 64
 stresing.settings.camera_settings[drvno].lines_binning = 1
@@ -59,45 +59,45 @@ pixel_plot = 363
 measurement_cnt1 = 30
 step_size1 = 100
 for i in range(measurement_cnt1):
-	print("Range 1: Measurement " + str(i + 1) + " of " + str(measurement_cnt1) + ", stime = " + str(stresing.settings.camera_settings[drvno].stime_in_microsec) + " µs")
+	print("Range 1: Measurement " + str(i + 1) + " of " + str(measurement_cnt1) + ", stime = " + str(stresing.settings.camera_settings[drvno].stime) + " µs")
 	# Initialize the measurement.
 	stresing.init_measurement()
 	# Start the measurement. This is the blocking call, which means it will return when the measurement is finished. This is done to ensure that no data access happens before all data is collected.
 	stresing.start_measurement_blocking()
 	# Get the data of one frame. Sample settings.nos-1, block 0, camera 0
 	frame_buffer = stresing.copy_one_sample(drvno, stresing.settings.nos-1, 0, 0)
-	list_x.append(stresing.settings.camera_settings[drvno].stime_in_microsec)
+	list_x.append(stresing.settings.camera_settings[drvno].stime)
 	list_y.append(frame_buffer[pixel_plot])
-	stresing.settings.camera_settings[drvno].stime_in_microsec += step_size1
+	stresing.settings.camera_settings[drvno].stime += step_size1
 
 
 measurement_cnt2 = 10 
 step_size2= 200
 for i in range(measurement_cnt2):
-	print("Range 2: Measurement " + str(i + 1) + " of " + str(measurement_cnt2) + ", stime = " + str(stresing.settings.camera_settings[drvno].stime_in_microsec) + " µs")
+	print("Range 2: Measurement " + str(i + 1) + " of " + str(measurement_cnt2) + ", stime = " + str(stresing.settings.camera_settings[drvno].stime) + " µs")
 	# Initialize the measurement.
 	stresing.init_measurement()
 	# Start the measurement. This is the blocking call, which means it will return when the measurement is finished. This is done to ensure that no data access happens before all data is collected.
 	stresing.start_measurement_blocking()
 	# Get the data of one frame. Sample settings.nos-1, block 0, camera 0
 	frame_buffer = stresing.copy_one_sample(drvno, stresing.settings.nos-1, 0, 0)
-	list_x.append(stresing.settings.camera_settings[drvno].stime_in_microsec)
+	list_x.append(stresing.settings.camera_settings[drvno].stime)
 	list_y.append(frame_buffer[pixel_plot])
-	stresing.settings.camera_settings[drvno].stime_in_microsec += step_size2
+	stresing.settings.camera_settings[drvno].stime += step_size2
 
 measurement_cnt3= 25
 step_size3 = 1000
 for i in range(measurement_cnt3):
-	print("Range 3: Measurement " + str(i + 1) + " of " + str(measurement_cnt3) + ", stime = " + str(stresing.settings.camera_settings[drvno].stime_in_microsec) + " µs")
+	print("Range 3: Measurement " + str(i + 1) + " of " + str(measurement_cnt3) + ", stime = " + str(stresing.settings.camera_settings[drvno].stime) + " µs")
 	# Initialize the measurement.
 	stresing.init_measurement()
 	# Start the measurement. This is the blocking call, which means it will return when the measurement is finished. This is done to ensure that no data access happens before all data is collected.
 	stresing.start_measurement_blocking()
 	# Get the data of one frame. Sample settings.nos-1, block 0, camera 0
 	frame_buffer = stresing.copy_one_sample(drvno, stresing.settings.nos-1, 0, 0)
-	list_x.append(stresing.settings.camera_settings[drvno].stime_in_microsec)
+	list_x.append(stresing.settings.camera_settings[drvno].stime)
 	list_y.append(frame_buffer[pixel_plot])
-	stresing.settings.camera_settings[drvno].stime_in_microsec += step_size3
+	stresing.settings.camera_settings[drvno].stime += step_size3
 
 # Plot
 plt.figure(layout="constrained")

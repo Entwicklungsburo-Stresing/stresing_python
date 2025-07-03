@@ -25,8 +25,8 @@ stresing.settings.camera_settings[drvno].CAMERA_SYSTEM = 2
 #0=3001, 1=3010, 2=3030
 stresing.settings.camera_settings[drvno].CAMCNT = 1
 stresing.settings.camera_settings[drvno].PIXEL = 1024
-stresing.settings.camera_settings[drvno].stime_in_microsec = 40
-stresing.settings.camera_settings[drvno].btime_in_microsec = 10
+stresing.settings.camera_settings[drvno].stime = 40
+stresing.settings.camera_settings[drvno].btime = 10
 stresing.settings.camera_settings[drvno].dac_output[0][0] = 54054
 stresing.settings.camera_settings[drvno].dac_output[0][1] = 54041
 stresing.settings.camera_settings[drvno].dac_output[0][2] = 54092

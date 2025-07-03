@@ -25,8 +25,8 @@ stresing.settings.camera_settings[drvno].CAMERA_SYSTEM = 1
 #0=3001, 1=3010, 2=3030
 stresing.settings.camera_settings[drvno].CAMCNT = 2
 stresing.settings.camera_settings[drvno].PIXEL = 1088
-stresing.settings.camera_settings[drvno].stime_in_microsec = 541
-stresing.settings.camera_settings[drvno].btime_in_microsec = 10
+stresing.settings.camera_settings[drvno].stime = 541
+stresing.settings.camera_settings[drvno].btime = 10
 stresing.settings.camera_settings[drvno].fft_mode = 0
 stresing.settings.camera_settings[drvno].FFT_LINES = 64
 stresing.settings.camera_settings[drvno].lines_binning = 1
@@ -56,7 +56,7 @@ list_y = []
 # plot this pixel
 pixel_plot = 363
 # this is the exposure time at which the sweep starts
-start_value = stresing.settings.camera_settings[drvno].stime_in_microsec
+start_value = stresing.settings.camera_settings[drvno].stime
 # do the first measurements with step_size
 step_size1_measurement_cnt = 200
 # this is the exposure time at which the step size changes
@@ -70,19 +70,19 @@ step_size2 = 10
 measurement_cnt = int((value_step2 - start_value) / step_size) + int((stop_value - value_step2) / step_size2)
 
 for i in range(measurement_cnt):
-	print("Measurement " + str(i + 1) + " of " + str(measurement_cnt) + ", stime = " + str(stresing.settings.camera_settings[drvno].stime_in_microsec) + " µs")
+	print("Measurement " + str(i + 1) + " of " + str(measurement_cnt) + ", stime = " + str(stresing.settings.camera_settings[drvno].stime) + " µs")
 	# Initialize the measurement.
 	stresing.init_measurement()
 	# Start the measurement. This is the blocking call, which means it will return when the measurement is finished. This is done to ensure that no data access happens before all data is collected.
 	stresing.start_measurement_blocking()
 	# Get the data of one frame. Sample settings.nos-1, block 0, camera 0
 	frame_buffer = stresing.copy_one_sample(drvno, stresing.settings.nos-1, 0, 0)
-	list_x.append(stresing.settings.camera_settings[drvno].stime_in_microsec)
+	list_x.append(stresing.settings.camera_settings[drvno].stime)
 	list_y.append(frame_buffer[pixel_plot])
 	if i < step_size1_measurement_cnt:
-		stresing.settings.camera_settings[drvno].stime_in_microsec += step_size
+		stresing.settings.camera_settings[drvno].stime += step_size
 	else:
-		stresing.settings.camera_settings[drvno].stime_in_microsec += step_size2
+		stresing.settings.camera_settings[drvno].stime += step_size2
 
 # Plot
 plt.figure(layout="constrained")
