@@ -8,6 +8,7 @@
 import ctypes
 from ctypes import c_uint8, POINTER, c_uint32, c_double, Structure, c_char, c_int, c_char_p, c_uint16, c_int64
 import os
+import configparser
 
 # Load ESLSCDLL.dll
 if os.name == 'nt':
@@ -87,6 +88,85 @@ class measurement_settings(Structure):
 		("contiuous_measurement", c_uint32),
 		("cont_pause_in_microseconds", c_uint32),
 		("camera_settings", camera_settings * 5)]
+	
+def init_settings_struct(ms: measurement_settings):
+	"""
+	Initialize the measurement_settings structure with default values using the DLL.
+
+	Args:
+		ms (measurement_settings): The measurement_settings structure to initialize.
+	"""
+	dll.DLLInitSettingsStruct.argtypes = [POINTER(measurement_settings)]
+	dll.DLLInitSettingsStruct(ctypes.byref(ms))
+
+def _init_module():
+	"""
+	Initialize module-level settings and structures when stresing is imported.
+	This function is called automatically when the module is imported.
+	"""
+	global settings
+	settings = measurement_settings()
+	init_settings_struct(settings)
+
+# This code runs when the module is imported:
+_init_module()
+
+def load_config_file(config_file: str):
+	"""
+	Load configuration settings from a specified INI file.
+
+	Args:
+		config_file (str): The path to the configuration file.
+
+	Raises:
+		FileNotFoundError: If the specified configuration file does not exist.
+	"""
+	if not os.path.exists(config_file):
+		raise FileNotFoundError(f"Configuration file '{config_file}' does not exist.")
+	
+	config = configparser.ConfigParser()
+	config.read(config_file)
+	
+	for section in config.sections():
+		if section == 'General':
+			settings.board_sel = int(config.get(section,"boardSel"))
+			settings.nos = int(config.get(section,"nos"))
+			settings.nob = int(config.get(section,"nob"))
+			settings.cont_pause_in_microseconds = int(config.get(section,"contPauseInMicroseconds"))
+		elif section.startswith('board'):
+			settings.camera_settings[int(section[-1])].use_software_polling = int(config.getboolean(section, "use_software_polling"))
+			settings.camera_settings[int(section[-1])].sti_mode = int(config.get(section, "sti"))
+			settings.camera_settings[int(section[-1])].bti_mode = int(config.get(section, "bti"))
+			settings.camera_settings[int(section[-1])].stime = int(config.get(section, "stimer"))
+			settings.camera_settings[int(section[-1])].btime = int(config.get(section, "btimer"))
+			settings.camera_settings[int(section[-1])].sdat_in_10ns = int(config.get(section, "sdat"))
+			settings.camera_settings[int(section[-1])].bdat_in_10ns = int(config.get(section, "bdat"))
+			settings.camera_settings[int(section[-1])].sslope = int(config.get(section, "sslope"))
+			settings.camera_settings[int(section[-1])].bslope = int(config.get(section, "bslope"))
+			settings.camera_settings[int(section[-1])].xckdelay_in_10ns = int(config.get(section, "xckdelay_in_10ns"))
+			settings.camera_settings[int(section[-1])].sec_in_10ns = int(config.get(section, "shutterSecIn10ns"))
+			settings.camera_settings[int(section[-1])].trigger_mode_integrator = int(config.get(section, "triggerModeIntegrator"))
+			settings.camera_settings[int(section[-1])].SENSOR_TYPE = int(config.get(section, "sensorType"))
+			settings.camera_settings[int(section[-1])].CAMERA_SYSTEM = int(config.get(section, "cameraSystem"))
+			settings.camera_settings[int(section[-1])].CAMCNT = int(config.get(section, "camcnt"))
+			settings.camera_settings[int(section[-1])].PIXEL = int(config.get(section, "pixelcnt"))
+			settings.camera_settings[int(section[-1])].is_fft_legacy = int(config.getboolean(section, "isFftLegacy"))
+			settings.camera_settings[int(section[-1])].led_off = int(config.getboolean(section, "led"))
+			settings.camera_settings[int(section[-1])].sensor_gain = int(config.get(section, "sensorGain"))
+			settings.camera_settings[int(section[-1])].adc_gain = int(config.get(section, "adcGain"))
+			settings.camera_settings[int(section[-1])].temp_level = int(config.get(section, "cooling"))
+			settings.camera_settings[int(section[-1])].bticnt = int(config.get(section, "bticnt"))
+			settings.camera_settings[int(section[-1])].gpx_offset = int(config.get(section, "gpxOffset"))
+			settings.camera_settings[int(section[-1])].FFT_LINES = int(config.get(section, "lines"))
+			settings.camera_settings[int(section[-1])].VFREQ = int(config.get(section, "vfreq"))
+			settings.camera_settings[int(section[-1])].fft_mode = int(config.get(section, "fftmode"))
+			settings.camera_settings[int(section[-1])].lines_binning = int(config.get(section, "linesbinning"))
+			settings.camera_settings[int(section[-1])].number_of_regions = int(config.get(section, "numberOfRegions"))
+			settings.camera_settings[int(section[-1])].region_size[0] = int(config.get(section, "regionSize1"))
+			settings.camera_settings[int(section[-1])].region_size[1] = int(config.get(section, "regionSize2"))
+			settings.camera_settings[int(section[-1])].region_size[2] = int(config.get(section, "regionSize3"))
+			settings.camera_settings[int(section[-1])].region_size[3] = int(config.get(section, "regionSize4"))
+			settings.camera_settings[int(section[-1])].region_size[4] = int(config.get(section, "regionSize5"))
 
 def __convert_error_code_to_msg(status: c_int) -> str:
 	"""
@@ -101,19 +181,6 @@ def __convert_error_code_to_msg(status: c_int) -> str:
 	dll.DLLConvertErrorCodeToMsg.argtypes = [c_int]
 	dll.DLLConvertErrorCodeToMsg.restype = c_char_p
 	return dll.DLLConvertErrorCodeToMsg(status).decode()
-
-def init_settings_struct(ms: measurement_settings):
-	"""
-	Initialize the measurement_settings structure with default values using the DLL.
-
-	Args:
-		ms (measurement_settings): The measurement_settings structure to initialize.
-	"""
-	dll.DLLInitSettingsStruct.argtypes = [POINTER(measurement_settings)]
-	dll.DLLInitSettingsStruct(ctypes.byref(ms))
-
-settings = measurement_settings()
-init_settings_struct(settings)
 
 def init_driver() -> int:
 	"""
