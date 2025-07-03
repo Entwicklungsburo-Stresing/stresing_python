@@ -22,5 +22,11 @@ You can run examples with
 python -m examples.simple_blocking_measurement
 ```
 
+## Installing as module
+You can install the module stresing with
+```
+pip install -e .
+```
+
 ## License
 The python module *stresing* is licened under the LPGL-3. All examples in the folder `examples/` are published as public domain under the Unlicense.
