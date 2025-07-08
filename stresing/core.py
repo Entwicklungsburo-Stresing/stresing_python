@@ -206,7 +206,7 @@ def load_config_file(config_file: str):
 			if (val := _safe_getboolean(config, section, "ecLegacyMode")) is not None: cs.ec_legacy_mode = int(val)
 			if (val := _safe_get(config, section, "timerResolutionMode")) is not None: cs.timer_resolution_mode = int(val)
 
-def __convert_error_code_to_msg(status: c_int) -> str:
+def convert_error_code_to_msg(status: c_int) -> str:
 	"""
 	Convert the error code returned by the DLL to a human-readable string message.
 
@@ -234,7 +234,7 @@ def init_driver() -> int:
 	status = dll.DLLInitDriver(ctypes.byref(_number_of_boards))
 	# Check the status code after each DLL call. When it is not 0, which means there is no error, an exception is raised. The error message will be displayed and the script will stop.
 	if status != 0:
-		raise Exception(__convert_error_code_to_msg(status))
+		raise Exception(convert_error_code_to_msg(status))
 	return _number_of_boards.value
 
 def init_measurement():
@@ -247,7 +247,7 @@ def init_measurement():
 	dll.DLLInitMeasurement.argtypes = [measurement_settings]
 	status = dll.DLLInitMeasurement(settings)
 	if status != 0:
-		raise Exception(__convert_error_code_to_msg(status))
+		raise Exception(convert_error_code_to_msg(status))
 
 def start_measurement_blocking():
 	"""
@@ -258,7 +258,7 @@ def start_measurement_blocking():
 	"""
 	status = dll.DLLStartMeasurement_blocking()
 	if status != 0:
-		raise Exception(__convert_error_code_to_msg(status))
+		raise Exception(convert_error_code_to_msg(status))
 
 def start_measurement_nonblocking():
 	"""
@@ -275,7 +275,7 @@ def abort_measurement():
 	"""
 	status = dll.DLLAbortMeasurement()
 	if status != 0:
-		raise Exception(__convert_error_code_to_msg(status))
+		raise Exception(convert_error_code_to_msg(status))
 
 def copy_one_sample(drvno: int, sample: int, block: int, camera: int) -> list[int]:
 	"""
@@ -297,7 +297,7 @@ def copy_one_sample(drvno: int, sample: int, block: int, camera: int) -> list[in
 	dll.DLLCopyOneSample.argtypes = [c_uint32, c_uint32, c_uint32, c_uint16, POINTER(c_uint16)]
 	status = dll.DLLCopyOneSample(c_uint32(drvno), c_uint32(sample), c_uint32(block), c_uint16(camera), frame_buffer)
 	if status != 0:
-		raise Exception(__convert_error_code_to_msg(status))
+		raise Exception(convert_error_code_to_msg(status))
 	return list(frame_buffer)
 
 def copy_one_sample_multiple_boards(sample: int, block: int, camera: int) -> list[list[int]]:
@@ -323,7 +323,7 @@ def copy_one_sample_multiple_boards(sample: int, block: int, camera: int) -> lis
 	dll.DLLCopyOneSample_multipleBoards.argtypes = [c_uint32, c_uint32, c_uint16, POINTER(c_uint16), POINTER(c_uint16), POINTER(c_uint16), POINTER(c_uint16), POINTER(c_uint16)]
 	status = dll.DLLCopyOneSample_multipleBoards(c_uint32(sample), c_uint32(block), c_uint16(camera), frame_buffer0, frame_buffer1, frame_buffer2, frame_buffer3, frame_buffer4)
 	if status != 0:
-		raise Exception(__convert_error_code_to_msg(status))
+		raise Exception(convert_error_code_to_msg(status))
 	all_buffers = [
 		list(frame_buffer0),
 		list(frame_buffer1),
@@ -351,7 +351,7 @@ def copy_one_block(drvno: int, block: int) -> list[int]:
 	dll.DLLCopyOneBlock.argtypes = [c_uint32, c_uint16, POINTER(c_uint16)]
 	status = dll.DLLCopyOneBlock(c_uint32(drvno), c_uint16(block), frame_buffer0)
 	if status != 0:
-		raise Exception(__convert_error_code_to_msg(status))
+		raise Exception(convert_error_code_to_msg(status))
 	return list(frame_buffer0)
 
 def copy_one_block_multiple_boards(block: int) -> list[list[int]]:
@@ -375,7 +375,7 @@ def copy_one_block_multiple_boards(block: int) -> list[list[int]]:
 	dll.DLLCopyOneBlock_multipleBoards.argtypes = [c_uint16, POINTER(c_uint16), POINTER(c_uint16), POINTER(c_uint16), POINTER(c_uint16), POINTER(c_uint16)]
 	status = dll.DLLCopyOneBlock_multipleBoards(c_uint16(block), frame_buffer0, frame_buffer1, frame_buffer2, frame_buffer3, frame_buffer4)
 	if status != 0:
-		raise Exception(__convert_error_code_to_msg(status))
+		raise Exception(convert_error_code_to_msg(status))
 	all_buffers = [
 		list(frame_buffer0),
 		list(frame_buffer1),
@@ -404,7 +404,7 @@ def copy_one_block_of_one_camera(drvno: int, block: int, camera: int) -> list[in
 	dll.DLLCopyOneBlockOfOneCamera.argtypes = [c_uint32, c_uint32, c_uint16, POINTER(c_uint16)]
 	status = dll.DLLCopyOneBlockOfOneCamera(c_uint32(drvno), c_uint32(block), c_uint16(camera), frame_buffer0)
 	if status != 0:
-		raise Exception(__convert_error_code_to_msg(status))
+		raise Exception(convert_error_code_to_msg(status))
 	return list(frame_buffer0)
 
 def copy_one_block_of_one_camera_multiple_boards(block: int, camera: int) -> list[list[int]]:
@@ -429,7 +429,7 @@ def copy_one_block_of_one_camera_multiple_boards(block: int, camera: int) -> lis
 	dll.DLLCopyOneBlockOfOneCamera_multipleBoards.argtypes = [c_uint16, c_uint16, POINTER(c_uint16), POINTER(c_uint16), POINTER(c_uint16), POINTER(c_uint16), POINTER(c_uint16)]
 	status = dll.DLLCopyOneBlockOfOneCamera_multipleBoards(c_uint16(block), c_uint16(camera), frame_buffer0, frame_buffer1, frame_buffer2, frame_buffer3, frame_buffer4)
 	if status != 0:
-		raise Exception(__convert_error_code_to_msg(status))
+		raise Exception(convert_error_code_to_msg(status))
 	all_buffers = [
 		list(frame_buffer0),
 		list(frame_buffer1),
@@ -456,7 +456,7 @@ def copy_all_data(drvno: int) -> list[int]:
 	dll.DLLCopyAllData.argtypes = [c_uint32, POINTER(c_uint16)]
 	status = dll.DLLCopyAllData(c_uint32(drvno), frame_buffer0)
 	if status != 0:
-		raise Exception(__convert_error_code_to_msg(status))
+		raise Exception(convert_error_code_to_msg(status))
 	return list(frame_buffer0)
 
 def copy_all_data_2d(drvno: int) -> list[list[int]]:
@@ -496,7 +496,7 @@ def copy_all_data_multiple_boards() -> list[list[int]]:
 	dll.DLLCopyAllData_multipleBoards.argtypes = [POINTER(c_uint16), POINTER(c_uint16), POINTER(c_uint16), POINTER(c_uint16), POINTER(c_uint16)]
 	status = dll.DLLCopyAllData_multipleBoards(frame_buffer0, frame_buffer1, frame_buffer2, frame_buffer3, frame_buffer4)
 	if status != 0:
-		raise Exception(__convert_error_code_to_msg(status))
+		raise Exception(convert_error_code_to_msg(status))
 	all_buffers = [
 		list(frame_buffer0),
 		list(frame_buffer1),
@@ -528,7 +528,7 @@ def copy_data_arbitrary(drvno: int, sample: int, block: int, camera: int, pixel:
 	dll.DLLCopyDataArbitrary.argtypes = [c_uint32, c_uint32, c_uint32, c_uint16, c_uint32, c_uint32, POINTER(c_uint16)]
 	status = dll.DLLCopyDataArbitrary(c_uint32(drvno), c_uint32(sample), c_uint32(block), c_uint16(camera), c_uint32(pixel), c_uint32(length_in_pixel), frame_buffer0)
 	if status != 0:
-		raise Exception(__convert_error_code_to_msg(status))
+		raise Exception(convert_error_code_to_msg(status))
 	return list(frame_buffer0)
 
 def get_one_sample_pointer(drvno: int, sample: int, block: int, camera: int) -> tuple[POINTER(c_uint16), int]:
@@ -552,7 +552,7 @@ def get_one_sample_pointer(drvno: int, sample: int, block: int, camera: int) -> 
 	bytes_to_end_of_buffer = ctypes.c_size_t()
 	status = dll.DLLGetOneSamplePointer(c_uint32(drvno), c_uint32(sample), c_uint32(block), c_uint16(camera), ctypes.byref(data_pointer), ctypes.byref(bytes_to_end_of_buffer))
 	if status != 0:
-		raise Exception(__convert_error_code_to_msg(status))
+		raise Exception(convert_error_code_to_msg(status))
 	return data_pointer, bytes_to_end_of_buffer.value
 
 def get_one_block_pointer(drvno: int, block: int) -> tuple[POINTER(c_uint16), int]:
@@ -574,7 +574,7 @@ def get_one_block_pointer(drvno: int, block: int) -> tuple[POINTER(c_uint16), in
 	bytes_to_end_of_buffer = ctypes.c_size_t()
 	status = dll.DLLGetOneBlockPointer(c_uint32(drvno), c_uint16(block), ctypes.byref(data_pointer), ctypes.byref(bytes_to_end_of_buffer))
 	if status != 0:
-		raise Exception(__convert_error_code_to_msg(status))
+		raise Exception(convert_error_code_to_msg(status))
 	return data_pointer, bytes_to_end_of_buffer.value
 
 def get_all_data_pointer(drvno: int) -> tuple[POINTER(c_uint16), int]:
@@ -595,7 +595,7 @@ def get_all_data_pointer(drvno: int) -> tuple[POINTER(c_uint16), int]:
 	bytes_to_end_of_buffer = ctypes.c_size_t()
 	status = dll.DLLGetAllDataPointer(c_uint32(drvno), ctypes.byref(data_pointer), ctypes.byref(bytes_to_end_of_buffer))
 	if status != 0:
-		raise Exception(__convert_error_code_to_msg(status))
+		raise Exception(convert_error_code_to_msg(status))
 	return data_pointer, bytes_to_end_of_buffer.value
 
 def get_pixel_pointer(drvno: int, pixel: int, sample: int, block: int, camera: int) -> tuple[POINTER(c_uint16), int]:
@@ -620,7 +620,7 @@ def get_pixel_pointer(drvno: int, pixel: int, sample: int, block: int, camera: i
 	bytes_to_end_of_buffer = ctypes.c_size_t()
 	status = dll.DLLGetPixelPointer(c_uint32(drvno), c_uint16(pixel), c_uint32(sample), c_uint32(block), c_uint16(camera), ctypes.byref(pdest), ctypes.byref(bytes_to_end_of_buffer))
 	if status != 0:
-		raise Exception(__convert_error_code_to_msg(status))
+		raise Exception(convert_error_code_to_msg(status))
 	return pdest, bytes_to_end_of_buffer.value
 
 def exit_driver():
@@ -632,7 +632,7 @@ def exit_driver():
 	"""
 	status = dll.DLLExitDriver()
 	if(status != 0):
-		raise Exception(__convert_error_code_to_msg(status))
+		raise Exception(convert_error_code_to_msg(status))
 	
 def get_current_scan_number(drvno: int) -> tuple[int, int]:
 	"""
@@ -652,7 +652,7 @@ def get_current_scan_number(drvno: int) -> tuple[int, int]:
 	dll.DLLGetCurrentScanNumber.argtypes = [c_uint32, POINTER(c_int64), POINTER(c_int64)]
 	status = dll.DLLGetCurrentScanNumber(c_uint32(drvno), ctypes.byref(cur_sample), ctypes.byref(cur_block))
 	if status != 0:
-		raise Exception(__convert_error_code_to_msg(status))
+		raise Exception(convert_error_code_to_msg(status))
 	return cur_sample.value, cur_block.value
 
 def set_shutter_states(drvno: int, states: int) -> None:
@@ -669,7 +669,7 @@ def set_shutter_states(drvno: int, states: int) -> None:
 	dll.DLLSetShutterStates.argtypes = [c_uint32, c_uint16]
 	status = dll.DLLSetShutterStates(c_uint32(drvno), c_uint16(states))
 	if status != 0:
-		raise Exception(__convert_error_code_to_msg(status))
+		raise Exception(convert_error_code_to_msg(status))
 
 def calc_trms(drvno: int, first_sample: int, last_sample: int, tmrs_pixel: int, cam_pos: int) -> tuple[float, float]:
 	"""
@@ -693,5 +693,5 @@ def calc_trms(drvno: int, first_sample: int, last_sample: int, tmrs_pixel: int, 
 	rms = c_double(0.0)
 	status = dll.DLLCalcTrms(c_uint32(drvno), c_uint32(first_sample), c_uint32(last_sample), c_uint32(tmrs_pixel), c_uint16(cam_pos), ctypes.byref(mean), ctypes.byref(rms))
 	if status != 0:
-		raise Exception(__convert_error_code_to_msg(status))
+		raise Exception(convert_error_code_to_msg(status))
 	return mean.value, rms.value

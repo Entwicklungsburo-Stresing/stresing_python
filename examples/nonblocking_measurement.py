@@ -68,4 +68,4 @@ plt.plot(frame_buffer)
 plt.show()
 
 # Exit the driver
-status = stresing.exit_driver()
+stresing.exit_driver()

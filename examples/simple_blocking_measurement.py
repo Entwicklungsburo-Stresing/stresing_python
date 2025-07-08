@@ -46,4 +46,4 @@ frame_buffer = stresing.copy_one_sample(drvno, 5, 0 ,0)
 plt.plot(frame_buffer)
 plt.show()
 # Exit the driver
-status = stresing.exit_driver()
+stresing.exit_driver()
