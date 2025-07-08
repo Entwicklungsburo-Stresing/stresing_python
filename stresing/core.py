@@ -111,6 +111,18 @@ def _init_module():
 # This code runs when the module is imported:
 _init_module()
 
+def _safe_get(config, section, option, default=None):
+	try:
+		return config.get(section, option)
+	except (configparser.NoOptionError, configparser.NoSectionError, ValueError):
+		return default
+
+def _safe_getboolean(config, section, option, default=None):
+	try:
+		return config.getboolean(section, option)
+	except (configparser.NoOptionError, configparser.NoSectionError, ValueError):
+		return default
+
 def load_config_file(config_file: str):
 	"""
 	Load configuration settings from a specified INI file.
@@ -127,69 +139,72 @@ def load_config_file(config_file: str):
 	config = configparser.ConfigParser()
 	config.read(config_file)
 
+	# Walk through the config file and apply all found settings to the settings object. When a setting is not found, it will be skipped.
 	for section in config.sections():
 		if section == 'General':
-			settings.board_sel = int(config.get(section,"boardSel"))
-			settings.nos = int(config.get(section,"nos"))
-			settings.nob = int(config.get(section,"nob"))
-			settings.cont_pause_in_microseconds = int(config.get(section,"contPauseInMicroseconds"))
+			if (val := _safe_get(config, section, "boardSel")) is not None: settings.board_sel = int(val)
+			if (val := _safe_get(config, section, "nos")) is not None: settings.nos = int(float(val))
+			if (val := _safe_get(config, section, "nob")) is not None: settings.nob = int(float(val))
+			if (val := _safe_get(config, section, "contPauseInMicroseconds")) is not None: settings.cont_pause_in_microseconds = int(float(val))
 		elif section.startswith('board'):
-			settings.camera_settings[int(section[-1])].use_software_polling = int(config.getboolean(section, "use_software_polling"))
-			settings.camera_settings[int(section[-1])].sti_mode = int(config.get(section, "sti"))
-			settings.camera_settings[int(section[-1])].bti_mode = int(config.get(section, "bti"))
-			settings.camera_settings[int(section[-1])].stime = int(config.get(section, "stimer"))
-			settings.camera_settings[int(section[-1])].btime = int(float(config.get(section, "btimer")))
-			settings.camera_settings[int(section[-1])].sdat_in_10ns = int(float(config.get(section, "sdat")))
-			settings.camera_settings[int(section[-1])].bdat_in_10ns = int(float(config.get(section, "bdat")))
-			settings.camera_settings[int(section[-1])].sslope = int(config.get(section, "sslope"))
-			settings.camera_settings[int(section[-1])].bslope = int(config.get(section, "bslope"))
-			settings.camera_settings[int(section[-1])].xckdelay_in_10ns = int(float(config.get(section, "xckdelay_in_10ns")))
-			settings.camera_settings[int(section[-1])].sec_in_10ns = int(float(config.get(section, "shutterSecIn10ns")))
-			settings.camera_settings[int(section[-1])].trigger_mode_integrator = int(config.get(section, "triggerModeIntegrator"))
-			settings.camera_settings[int(section[-1])].SENSOR_TYPE = int(config.get(section, "sensorType"))
-			settings.camera_settings[int(section[-1])].CAMERA_SYSTEM = int(config.get(section, "cameraSystem"))
-			settings.camera_settings[int(section[-1])].CAMCNT = int(config.get(section, "camcnt"))
-			settings.camera_settings[int(section[-1])].PIXEL = int(config.get(section, "pixelcnt"))
-			settings.camera_settings[int(section[-1])].is_fft_legacy = int(config.getboolean(section, "isFftLegacy"))
-			settings.camera_settings[int(section[-1])].led_off = int(config.getboolean(section, "led"))
-			settings.camera_settings[int(section[-1])].sensor_gain = int(config.get(section, "sensorGain"))
-			settings.camera_settings[int(section[-1])].adc_gain = int(config.get(section, "adcGain"))
-			settings.camera_settings[int(section[-1])].temp_level = int(config.get(section, "cooling"))
-			settings.camera_settings[int(section[-1])].bticnt = int(config.get(section, "bticnt"))
-			settings.camera_settings[int(section[-1])].gpx_offset = int(float(config.get(section, "gpxOffset")))
-			settings.camera_settings[int(section[-1])].FFT_LINES = int(config.get(section, "lines"))
-			settings.camera_settings[int(section[-1])].VFREQ = int(config.get(section, "vfreq"))
-			settings.camera_settings[int(section[-1])].fft_mode = int(config.get(section, "fftmode"))
-			settings.camera_settings[int(section[-1])].lines_binning = int(config.get(section, "linesbinning"))
-			settings.camera_settings[int(section[-1])].number_of_regions = int(config.get(section, "numberOfRegions"))
+			idx = int(section[-1])
+			cs = settings.camera_settings[idx]
+			if (val := _safe_getboolean(config, section, "use_software_polling")) is not None: cs.use_software_polling = int(val)
+			if (val := _safe_get(config, section, "sti")) is not None: cs.sti_mode = int(val)
+			if (val := _safe_get(config, section, "bti")) is not None: cs.bti_mode = int(val)
+			if (val := _safe_get(config, section, "stimer")) is not None: cs.stime = int(float(val))
+			if (val := _safe_get(config, section, "btimer")) is not None: cs.btime = int(float(val))
+			if (val := _safe_get(config, section, "sdat")) is not None: cs.sdat_in_10ns = int(float(val))
+			if (val := _safe_get(config, section, "bdat")) is not None: cs.bdat_in_10ns = int(float(val))
+			if (val := _safe_get(config, section, "sslope")) is not None: cs.sslope = int(val)
+			if (val := _safe_get(config, section, "bslope")) is not None: cs.bslope = int(val)
+			if (val := _safe_get(config, section, "xckdelay_in_10ns")) is not None: cs.xckdelay_in_10ns = int(float(val))
+			if (val := _safe_get(config, section, "shutterSecIn10ns")) is not None: cs.sec_in_10ns = int(float(val))
+			if (val := _safe_get(config, section, "triggerModeIntegrator")) is not None: cs.trigger_mode_integrator = int(val)
+			if (val := _safe_get(config, section, "sensorType")) is not None: cs.SENSOR_TYPE = int(val)
+			if (val := _safe_get(config, section, "cameraSystem")) is not None: cs.CAMERA_SYSTEM = int(val)
+			if (val := _safe_get(config, section, "camcnt")) is not None: cs.CAMCNT = int(val)
+			if (val := _safe_get(config, section, "pixelcnt")) is not None: cs.PIXEL = int(val)
+			if (val := _safe_getboolean(config, section, "isFftLegacy")) is not None: cs.is_fft_legacy = int(val)
+			if (val := _safe_getboolean(config, section, "led")) is not None: cs.led_off = int(val)
+			if (val := _safe_get(config, section, "sensorGain")) is not None: cs.sensor_gain = int(val)
+			if (val := _safe_get(config, section, "adcGain")) is not None: cs.adc_gain = int(val)
+			if (val := _safe_get(config, section, "cooling")) is not None: cs.temp_level = int(val)
+			if (val := _safe_get(config, section, "bticnt")) is not None: cs.bticnt = int(val)
+			if (val := _safe_get(config, section, "gpxOffset")) is not None: cs.gpx_offset = int(val)
+			if (val := _safe_get(config, section, "lines")) is not None: cs.FFT_LINES = int(val)
+			if (val := _safe_get(config, section, "vfreq")) is not None: cs.VFREQ = int(val)
+			if (val := _safe_get(config, section, "fftmode")) is not None: cs.fft_mode = int(val)
+			if (val := _safe_get(config, section, "linesbinning")) is not None: cs.lines_binning = int(val)
+			if (val := _safe_get(config, section, "numberOfRegions")) is not None: cs.number_of_regions = int(val)
 			for i in range(0, 4):
-				settings.camera_settings[int(section[-1])].region_size[i] = int(config.get(section, "regionSize" + str(i + 1)))
-			for i in range (0, 8):
-				for j in range (0, 8):
-					settings.camera_settings[int(section[-1])].dac_output[i][j] = int(config.get(section, "dacCameraChannel" + str(j + 1) + "Pos" + str(i)))
-			settings.camera_settings[int(section[-1])].tor = int(config.get(section, "tor"))
-			settings.camera_settings[int(section[-1])].adc_mode = int(config.get(section, "adcMode"))
-			settings.camera_settings[int(section[-1])].adc_custom_pattern = int(config.get(section, "adcCustomValue"))
-			settings.camera_settings[int(section[-1])].bec_in_10ns = int(float(config.get(section, "shutterBecIn10ns")))
-			settings.camera_settings[int(section[-1])].channel_select = int(config.get(section, "channelSelect"))
-			settings.camera_settings[int(section[-1])].ioctrl_impact_start_pixel = int(config.get(section, "IOCtrlImpactStartPixel"))
+				if (val := _safe_get(config, section, f"regionSize{i+1}")) is not None: cs.region_size[i] = int(val)
 			for i in range(0, 8):
-				settings.camera_settings[int(section[-1])].ioctrl_output_width_in_5ns[i] = int(config.get(section, "Output" + str(i + 1) + "WidthIn5ns"))
-				settings.camera_settings[int(section[-1])].ioctrl_output_delay_in_5ns[i] = int(config.get(section, "Output" + str(i + 1) + "DelayIn5ns"))
-			settings.camera_settings[int(section[-1])].ictrl_T0_period_in_10ns = int(config.get(section, "T0PeriodIn10ns"))
-			# settings.camera_settings[int(section[-1])].dma_buffer_size_in_scans ?
-			settings.camera_settings[int(section[-1])].tocnt = int(config.get(section, "tocnt"))
-			settings.camera_settings[int(section[-1])].sticnt = int(config.get(section, "sticnt"))
-			settings.camera_settings[int(section[-1])].sensor_reset_or_hsir_ec = int(config.get(section, "sensorResetOrHsirEc"))
-			settings.camera_settings[int(section[-1])].write_to_disc = int(config.getboolean(section, "writeDataToDisc"))
-			settings.camera_settings[int(section[-1])].file_path = config.get(section, "filePath").encode('utf-8')
-			settings.camera_settings[int(section[-1])].shift_s1s2_to_next_scan = int(config.getboolean(section, "shiftS1S2ToNextScan"))
-			settings.camera_settings[int(section[-1])].is_cooled_camera_legacy_mode = int(config.getboolean(section, "isCooledCameraLegacyMode"))
-			settings.camera_settings[int(section[-1])].monitor = int(config.getboolean(section, "monitor"))
-			settings.camera_settings[int(section[-1])].manipulate_data_mode = int(config.get(section, "manipulateDataMode"))
-			settings.camera_settings[int(section[-1])].manipulate_data_custom_factor = float(config.get(section, "manipulateDataCustomFactor"))
-			settings.camera_settings[int(section[-1])].ec_legacy_mode = int(config.getboolean(section, "ecLegacyMode"))
-			settings.camera_settings[int(section[-1])].timer_resolution_mode = int(config.get(section, "timerResolutionMode"))
+				for j in range(0, 8):
+					if (val := _safe_get(config, section, f"dacCameraChannel{j+1}Pos{i}")) is not None: cs.dac_output[i][j] = int(val)
+			if (val := _safe_get(config, section, "tor")) is not None: cs.tor = int(val)
+			if (val := _safe_get(config, section, "adcMode")) is not None: cs.adc_mode = int(val)
+			if (val := _safe_get(config, section, "adcCustomValue")) is not None: cs.adc_custom_pattern = int(val)
+			if (val := _safe_get(config, section, "shutterBecIn10ns")) is not None: cs.bec_in_10ns = int(float(val))
+			if (val := _safe_get(config, section, "channelSelect")) is not None: cs.channel_select = int(val)
+			if (val := _safe_get(config, section, "IOCtrlImpactStartPixel")) is not None: cs.ioctrl_impact_start_pixel = int(val)
+			for i in range(0, 8):
+				if (val := _safe_get(config, section, f"Output{i+1}WidthIn5ns")) is not None: cs.ioctrl_output_width_in_5ns[i] = int(float(val))
+				if (val := _safe_get(config, section, f"Output{i+1}DelayIn5ns")) is not None: cs.ioctrl_output_delay_in_5ns[i] = int(float(val))
+			if (val := _safe_get(config, section, "T0PeriodIn10ns")) is not None: cs.ictrl_T0_period_in_10ns = int(float(val))
+			if (val := _safe_get(config, section, "dma_buffer_size_in_scans")) is not None: cs.dma_buffer_size_in_scans = int(val)
+			if (val := _safe_get(config, section, "tocnt")) is not None: cs.tocnt = int(val)
+			if (val := _safe_get(config, section, "sticnt")) is not None: cs.sticnt = int(val)
+			if (val := _safe_get(config, section, "sensorResetOrHsirEc")) is not None: cs.sensor_reset_or_hsir_ec = int(float(val))
+			if (val := _safe_getboolean(config, section, "writeDataToDisc")) is not None: cs.write_to_disc = int(val)
+			if (val := _safe_get(config, section, "filePath")) is not None: cs.file_path = val.encode('utf-8')
+			if (val := _safe_getboolean(config, section, "shiftS1S2ToNextScan")) is not None: cs.shift_s1s2_to_next_scan = int(val)
+			if (val := _safe_getboolean(config, section, "isCooledCameraLegacyMode")) is not None: cs.is_cooled_camera_legacy_mode = int(val)
+			if (val := _safe_getboolean(config, section, "monitor")) is not None: cs.monitor = int(val)
+			if (val := _safe_get(config, section, "manipulateDataMode")) is not None: cs.manipulate_data_mode = int(val)
+			if (val := _safe_get(config, section, "manipulateDataCustomFactor")) is not None: cs.manipulate_data_custom_factor = float(val)
+			if (val := _safe_getboolean(config, section, "ecLegacyMode")) is not None: cs.ec_legacy_mode = int(val)
+			if (val := _safe_get(config, section, "timerResolutionMode")) is not None: cs.timer_resolution_mode = int(val)
 
 def __convert_error_code_to_msg(status: c_int) -> str:
 	"""
