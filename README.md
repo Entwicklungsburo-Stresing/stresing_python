@@ -1,6 +1,6 @@
 # Python script for Stresing cameras
 
-In this repository you can find the python module *stresing* for operating [Stresing](https://stresing.de) cameras. This is located in the folder `stresing/`. You can find examples how to use this module in the folder `example/`
+In this repository you can find the python module *stresing* for operating [Stresing](https://stresing.de) cameras. This is located in the folder `stresing/`. You can find examples how to use this module in the folder `example/`. If you don't know where to start, start with [examples/simple_blocking_measurement.py](examples/simple_blocking_measurement.py).
 
 ![screenshot of the plot](./screenshot/graph.png)
 
@@ -8,13 +8,13 @@ In this repository you can find the python module *stresing* for operating [Stre
 * [Python 3](https://www.python.org/)
 * [Microsoft Visual C++ Redistributable](https://aka.ms/vs/16/release/vc_redist.x64.exe) to use the DLL
 * [ctypes](https://pypi.org/project/ctypes/)
-* [matplotlib](https://pypi.org/project/matplotlib/)
+* [configpraser](https://pypi.org/project/configparser/)
 
 ## DLL source
 The source code of the DLL ESLSCDLL.dll can be found in the repository [EBST_CAM](https://github.com/Entwicklungsburo-Stresing/EBST_CAM).
 
 ## Documentation
-The script is following the basic operation as described in the chapter *How to operate Stresing cameras* of the [software documentation](https://entwicklungsburo-stresing.github.io/). The settings must match your camera system. You can find a description of every setting [here](https://entwicklungsburo-stresing.github.io/structmeasurement__settings.html).
+There is a [full documentation](https://entwicklungsburo-stresing.github.io) of the library ESLSCDLL. The settings in `config.ini` must match your camera system. You can find a description of every setting [here](https://entwicklungsburo-stresing.github.io/structmeasurement__settings.html). The file config.ini is compatible with the exported settings of the GUI [Escam](https://github.com/Entwicklungsburo-Stresing/EBST_CAM). Settings that are not found in the file, will be left as default.
 
 ## Examples
 You can run examples with
