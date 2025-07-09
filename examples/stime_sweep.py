@@ -11,45 +11,10 @@ import stresing
 
 # Always use board 0. There is only one PCIe board in this example script.
 drvno = 0
-
-# Set all settings that are needed for the measurement. See EBST_CAM/shared_src/struct.h for details.
-# You can find a description of all settings here: https://entwicklungsburo-stresing.github.io/structmeasurement__settings.html
-stresing.settings.board_sel = 1
-stresing.settings.nos = 10
-stresing.settings.nob = 1
-stresing.settings.camera_settings[drvno].sti_mode = 4
-stresing.settings.camera_settings[drvno].bti_mode = 4
-stresing.settings.camera_settings[drvno].SENSOR_TYPE = 3
-# 0=PDA , 1=IR, 2=FFT, 3=CMOS, 4=HSVIS, 5=HSIR
-stresing.settings.camera_settings[drvno].CAMERA_SYSTEM = 1
-#0=3001, 1=3010, 2=3030
-stresing.settings.camera_settings[drvno].CAMCNT = 2
-stresing.settings.camera_settings[drvno].PIXEL = 1088
-stresing.settings.camera_settings[drvno].stime = 541
-stresing.settings.camera_settings[drvno].btime = 10
-stresing.settings.camera_settings[drvno].fft_mode = 0
-stresing.settings.camera_settings[drvno].FFT_LINES = 64
-stresing.settings.camera_settings[drvno].lines_binning = 1
-stresing.settings.camera_settings[drvno].number_of_regions = 5
-stresing.settings.camera_settings[drvno].region_size[0] = 10
-stresing.settings.camera_settings[drvno].region_size[1] = 50
-stresing.settings.camera_settings[drvno].region_size[2] = 10
-stresing.settings.camera_settings[drvno].region_size[3] = 50
-stresing.settings.camera_settings[drvno].region_size[4] = 8
-stresing.settings.camera_settings[drvno].use_software_polling = 0
-stresing.settings.camera_settings[drvno].VFREQ = 3
-stresing.settings.camera_settings[drvno].dac_output[0][0] = 53256
-stresing.settings.camera_settings[drvno].dac_output[0][1] = 53291
-stresing.settings.camera_settings[drvno].dac_output[0][2] = 53538
-stresing.settings.camera_settings[drvno].dac_output[0][3] = 53335
-stresing.settings.camera_settings[drvno].dac_output[0][4] = 53194
-stresing.settings.camera_settings[drvno].dac_output[0][5] = 53364
-stresing.settings.camera_settings[drvno].dac_output[0][6] = 53333
-stresing.settings.camera_settings[drvno].dac_output[0][7] = 53248
-stresing.settings.camera_settings[drvno].adc_gain = 6
-
 # Initialize the driver and pass the created pointer to it. number_of_boards should show the number of detected PCIe boards after the next call.
 stresing.init_driver()
+# Set all settings that are needed for the measurement in config.ini. The file config.ini is also compatible with the exported settings of Escam. Settings that are not found in the file, will be left as default. You can find a description of all settings here: https://entwicklungsburo-stresing.github.io/structmeasurement__settings.html
+stresing.load_config_file("config.ini")
 # create an empty list to store the data
 list_x = []
 list_y = []

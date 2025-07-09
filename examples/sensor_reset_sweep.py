@@ -11,35 +11,10 @@ import stresing
 
 # Always use board 0. There is only one PCIe board in this example script.
 drvno = 0
-
-# Set all settings that are needed for the measurement. See EBST_CAM/shared_src/struct.h for details.
-# You can find a description of all settings here: https://entwicklungsburo-stresing.github.io/structmeasurement__settings.html
-stresing.settings.board_sel = 1
-stresing.settings.nos = 1000
-stresing.settings.nob = 1
-stresing.settings.camera_settings[drvno].sti_mode = 0
-stresing.settings.camera_settings[drvno].bti_mode = 2
-stresing.settings.camera_settings[drvno].SENSOR_TYPE = 4
-# 0=PDA , 1=IR, 2=FFT, 3=CMOS, 4=HSVIS, 5=HSIR
-stresing.settings.camera_settings[drvno].CAMERA_SYSTEM = 2
-#0=3001, 1=3010, 2=3030
-stresing.settings.camera_settings[drvno].CAMCNT = 1
-stresing.settings.camera_settings[drvno].PIXEL = 1024
-stresing.settings.camera_settings[drvno].stime = 40
-stresing.settings.camera_settings[drvno].btime = 10
-stresing.settings.camera_settings[drvno].dac_output[0][0] = 54054
-stresing.settings.camera_settings[drvno].dac_output[0][1] = 54041
-stresing.settings.camera_settings[drvno].dac_output[0][2] = 54092
-stresing.settings.camera_settings[drvno].dac_output[0][3] = 54119
-stresing.settings.camera_settings[drvno].dac_output[0][4] = 54105
-stresing.settings.camera_settings[drvno].dac_output[0][5] = 54149
-stresing.settings.camera_settings[drvno].dac_output[0][6] = 54166
-stresing.settings.camera_settings[drvno].dac_output[0][7] = 54060
-stresing.settings.camera_settings[drvno].adc_gain = 5
-stresing.settings.camera_settings[drvno].sensor_reset_or_hsir_ec = 0
-
 # Initialize the driver and pass the created pointer to it. number_of_boards should show the number of detected PCIe boards after the next call.
 stresing.init_driver()
+# Set all settings that are needed for the measurement in config.ini. The file config.ini is also compatible with the exported settings of Escam. Settings that are not found in the file, will be left as default. You can find a description of all settings here: https://entwicklungsburo-stresing.github.io/structmeasurement__settings.html
+stresing.load_config_file("config.ini")
 # create an empty list to store the data
 list_x = []
 list_y1 = []

@@ -125,7 +125,7 @@ def _safe_getboolean(config, section, option, default=None):
 
 def load_config_file(config_file: str):
 	"""
-	Load configuration settings from a specified INI file.
+	Load configuration settings from a specified INI file. The file is compatible with the exported settings of the GUI Escam. Settings that are not found in the file, will be left as default. You can find a description of all settings here: https://entwicklungsburo-stresing.github.io/structmeasurement__settings.html
 
 	Args:
 		config_file (str): The path to the configuration file.
