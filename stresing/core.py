@@ -6,7 +6,7 @@
 # @copyright: Copyright (c) 2025, Entwicklungsbüro Stresing. Released under the LPGL-3.0.
 
 import ctypes
-from ctypes import c_uint8, POINTER, c_uint32, c_double, Structure, c_char, c_int, c_char_p, c_uint16, c_int64
+from ctypes import c_uint8, POINTER, c_uint32, c_double, Structure, c_char, c_int, c_char_p, c_uint16, c_int64, CFUNCTYPE
 import os
 import configparser
 
@@ -695,3 +695,63 @@ def calc_trms(drvno: int, first_sample: int, last_sample: int, tmrs_pixel: int, 
 	if status != 0:
 		raise Exception(convert_error_code_to_msg(status))
 	return mean.value, rms.value
+
+def set_measure_start_hook(hook_function) -> None:
+	"""
+	Set a hook function that will be called when the measurement starts.
+
+	Args:
+		hook_function: The function to call when the measurement starts.
+	"""
+	dll.DLLSetMeasureStartHook.argtypes = [CFUNCTYPE(None)]
+	hook_func_ref = CFUNCTYPE(None)(hook_function)
+	dll.DLLSetMeasureStartHook(hook_func_ref)
+	return hook_func_ref
+
+def set_measure_done_hook(hook_function) -> None:
+	"""
+	Set a hook function that will be called when the measurement is done.
+
+	Args:
+		hook_function: The function to call when the measurement is done.
+	"""
+	dll.DLLSetMeasureDoneHook.argtypes = [CFUNCTYPE(None)]
+	hook_func_ref = CFUNCTYPE(None)(hook_function)
+	dll.DLLSetMeasureDoneHook(hook_func_ref)
+	return hook_func_ref
+
+def set_block_start_hook(hook_function) -> None:
+	"""
+	Set a hook function that will be called when a new block starts.
+
+	Args:
+		hook_function: The function to call when a new block starts.
+	"""
+	dll.DLLSetBlockStartHook.argtypes = [CFUNCTYPE(None)]
+	hook_func_ref = CFUNCTYPE(None)(hook_function)
+	dll.DLLSetBlockStartHook(hook_func_ref)
+	return hook_func_ref
+
+def set_block_done_hook(hook_function) -> None:
+	"""
+	Set a hook function that will be called when a block is done.
+
+	Args:
+		hook_function: The function to call when a block is done.
+	"""
+	dll.DLLSetBlockDoneHook.argtypes = [CFUNCTYPE(None)]
+	hook_func_ref = CFUNCTYPE(None)(hook_function)
+	dll.DLLSetBlockDoneHook(hook_func_ref)
+	return hook_func_ref
+
+def set_all_blocks_done_hook(hook_function) -> None:
+	"""
+	Set a hook function that will be called when all blocks are done.
+
+	Args:
+		hook_function: The function to call when all blocks are done.
+	"""
+	dll.DLLSetAllBlocksDoneHook.argtypes = [CFUNCTYPE(None)]
+	hook_func_ref = CFUNCTYPE(None)(hook_function)
+	dll.DLLSetAllBlocksDoneHook(hook_func_ref)
+	return hook_func_ref
