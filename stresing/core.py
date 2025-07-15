@@ -9,6 +9,7 @@ import ctypes
 from ctypes import c_uint8, POINTER, c_uint32, c_double, Structure, c_char, c_int, c_char_p, c_uint16, c_int64, CFUNCTYPE
 import os
 import configparser
+from typing import Callable
 
 # Load ESLSCDLL.dll
 if os.name == 'nt':
@@ -696,7 +697,7 @@ def calc_trms(drvno: int, first_sample: int, last_sample: int, tmrs_pixel: int, 
 		raise Exception(convert_error_code_to_msg(status))
 	return mean.value, rms.value
 
-def set_measure_start_hook(hook_function) -> None:
+def set_measure_start_hook(hook_function: Callable[[], None]) -> object:
 	"""
 	Set a hook function that will be called when the measurement starts.
 
@@ -708,7 +709,7 @@ def set_measure_start_hook(hook_function) -> None:
 	dll.DLLSetMeasureStartHook(hook_func_ref)
 	return hook_func_ref
 
-def set_measure_done_hook(hook_function) -> None:
+def set_measure_done_hook(hook_function: Callable[[], None]) -> object:
 	"""
 	Set a hook function that will be called when the measurement is done.
 
@@ -720,7 +721,7 @@ def set_measure_done_hook(hook_function) -> None:
 	dll.DLLSetMeasureDoneHook(hook_func_ref)
 	return hook_func_ref
 
-def set_block_start_hook(hook_function) -> None:
+def set_block_start_hook(hook_function: Callable[[], None]) -> object:
 	"""
 	Set a hook function that will be called when a new block starts.
 
@@ -732,7 +733,7 @@ def set_block_start_hook(hook_function) -> None:
 	dll.DLLSetBlockStartHook(hook_func_ref)
 	return hook_func_ref
 
-def set_block_done_hook(hook_function) -> None:
+def set_block_done_hook(hook_function: Callable[[], None]) -> object:
 	"""
 	Set a hook function that will be called when a block is done.
 
@@ -744,7 +745,7 @@ def set_block_done_hook(hook_function) -> None:
 	dll.DLLSetBlockDoneHook(hook_func_ref)
 	return hook_func_ref
 
-def set_all_blocks_done_hook(hook_function) -> None:
+def set_all_blocks_done_hook(hook_function: Callable[[], None]) -> object:
 	"""
 	Set a hook function that will be called when all blocks are done.
 
