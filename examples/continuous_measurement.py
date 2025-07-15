@@ -1,8 +1,8 @@
 ## @file: simple_blocking_measurement.py
-# @brief: This script shows how to use hooks.
+# @brief: This script shows how to a continuous measurement.
 # @details:
 # @author: Florian Hahn
-# @date: 14.07.2025
+# @date: 15.07.2025
 # @copyright: Copyright (c) 2025, Entwicklungsbüro Stresing. Released as public domain under the Unlicense.
 
 import stresing
@@ -32,9 +32,15 @@ measure_done_ref = stresing.set_measure_done_hook(measure_done_hook)
 block_started_ref = stresing.set_block_start_hook(block_start_hook)
 block_done_ref = stresing.set_block_done_hook(block_done_hook)
 all_blocks_done_ref = stresing.set_all_blocks_done_hook(all_blocks_done_hook)
+stresing.settings.contiuous_measurement = 1
 # Initialize the measurement.
 stresing.init_measurement()
-# Start the measurement. This is the blocking call, which means it will return when the measurement is finished. This is done to ensure that no data access happens before all data is collected.
-stresing.start_measurement_blocking()
+# Start the measurement non blocking.
+stresing.start_measurement_nonblocking()
+# Wait for 10 seconds
+import time
+time.sleep(10)
+# Stop the measurement.
+stresing.abort_measurement()
 # Exit the driver
 stresing.exit_driver()

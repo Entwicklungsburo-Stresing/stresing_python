@@ -6,7 +6,7 @@
 # @copyright: Copyright (c) 2025, Entwicklungsbüro Stresing. Released under the LPGL-3.0.
 
 import ctypes
-from ctypes import c_uint8, POINTER, c_uint32, c_double, Structure, c_char, c_int, c_char_p, c_uint16, c_int64, CFUNCTYPE
+from ctypes import c_uint8, POINTER, c_uint32, c_double, Structure, c_char, c_int, c_char_p, c_uint16, c_int64, CFUNCTYPE, c_uint64
 import os
 import configparser
 from typing import Callable
@@ -40,10 +40,10 @@ class camera_settings(Structure):
 		("xckdelay_in_10ns", c_uint32),
 		("sec_in_10ns", c_uint32),
 		("trigger_mode_integrator", c_uint32),
-		("SENSOR_TYPE", c_uint32),
-		("CAMERA_SYSTEM", c_uint32),
-		("CAMCNT", c_uint32),
-		("PIXEL", c_uint32),
+		("sensor_type", c_uint32),
+		("camera_system", c_uint32),
+		("camcnt", c_uint32),
+		("pixel", c_uint32),
 		("is_fft_legacy", c_uint32),
 		("led_off", c_uint32),
 		("sensor_gain", c_uint32),
@@ -51,8 +51,8 @@ class camera_settings(Structure):
 		("temp_level", c_uint32),
 		("bticnt", c_uint32),
 		("gpx_offset", c_uint32),
-		("FFT_LINES", c_uint32),
-		("VFREQ", c_uint32),
+		("fft_lines", c_uint32),
+		("vfreq", c_uint32),
 		("fft_mode", c_uint32),
 		("lines_binning", c_uint32),
 		("number_of_regions", c_uint32),
@@ -143,69 +143,69 @@ def load_config_file(config_file: str):
 	# Walk through the config file and apply all found settings to the settings object. When a setting is not found, it will be skipped.
 	for section in config.sections():
 		if section == 'General':
-			if (val := _safe_get(config, section, "boardSel")) is not None: settings.board_sel = int(val)
+			if (val := _safe_get(config, section, "board_sel")) is not None: settings.board_sel = int(val)
 			if (val := _safe_get(config, section, "nos")) is not None: settings.nos = int(float(val))
 			if (val := _safe_get(config, section, "nob")) is not None: settings.nob = int(float(val))
-			if (val := _safe_get(config, section, "contPauseInMicroseconds")) is not None: settings.cont_pause_in_microseconds = int(float(val))
+			if (val := _safe_get(config, section, "cont_pause_in_microseconds")) is not None: settings.cont_pause_in_microseconds = int(float(val))
 		elif section.startswith('board'):
 			idx = int(section[-1])
 			cs = settings.camera_settings[idx]
 			if (val := _safe_getboolean(config, section, "use_software_polling")) is not None: cs.use_software_polling = int(val)
-			if (val := _safe_get(config, section, "sti")) is not None: cs.sti_mode = int(val)
-			if (val := _safe_get(config, section, "bti")) is not None: cs.bti_mode = int(val)
-			if (val := _safe_get(config, section, "stimer")) is not None: cs.stime = int(float(val))
-			if (val := _safe_get(config, section, "btimer")) is not None: cs.btime = int(float(val))
-			if (val := _safe_get(config, section, "sdat")) is not None: cs.sdat_in_10ns = int(float(val))
-			if (val := _safe_get(config, section, "bdat")) is not None: cs.bdat_in_10ns = int(float(val))
+			if (val := _safe_get(config, section, "sti_mode")) is not None: cs.sti_mode = int(val)
+			if (val := _safe_get(config, section, "bti_mode")) is not None: cs.bti_mode = int(val)
+			if (val := _safe_get(config, section, "stime")) is not None: cs.stime = int(float(val))
+			if (val := _safe_get(config, section, "btime")) is not None: cs.btime = int(float(val))
+			if (val := _safe_get(config, section, "sdat_in_10ns")) is not None: cs.sdat_in_10ns = int(float(val))
+			if (val := _safe_get(config, section, "bdat_in_10ns")) is not None: cs.bdat_in_10ns = int(float(val))
 			if (val := _safe_get(config, section, "sslope")) is not None: cs.sslope = int(val)
 			if (val := _safe_get(config, section, "bslope")) is not None: cs.bslope = int(val)
 			if (val := _safe_get(config, section, "xckdelay_in_10ns")) is not None: cs.xckdelay_in_10ns = int(float(val))
-			if (val := _safe_get(config, section, "shutterSecIn10ns")) is not None: cs.sec_in_10ns = int(float(val))
-			if (val := _safe_get(config, section, "triggerModeIntegrator")) is not None: cs.trigger_mode_integrator = int(val)
-			if (val := _safe_get(config, section, "sensorType")) is not None: cs.SENSOR_TYPE = int(val)
-			if (val := _safe_get(config, section, "cameraSystem")) is not None: cs.CAMERA_SYSTEM = int(val)
-			if (val := _safe_get(config, section, "camcnt")) is not None: cs.CAMCNT = int(val)
-			if (val := _safe_get(config, section, "pixelcnt")) is not None: cs.PIXEL = int(val)
-			if (val := _safe_getboolean(config, section, "isFftLegacy")) is not None: cs.is_fft_legacy = int(val)
-			if (val := _safe_getboolean(config, section, "led")) is not None: cs.led_off = int(val)
-			if (val := _safe_get(config, section, "sensorGain")) is not None: cs.sensor_gain = int(val)
-			if (val := _safe_get(config, section, "adcGain")) is not None: cs.adc_gain = int(val)
-			if (val := _safe_get(config, section, "cooling")) is not None: cs.temp_level = int(val)
+			if (val := _safe_get(config, section, "sec_in_10ns")) is not None: cs.sec_in_10ns = int(float(val))
+			if (val := _safe_get(config, section, "trigger_mode_integrator")) is not None: cs.trigger_mode_integrator = int(val)
+			if (val := _safe_get(config, section, "sensor_type")) is not None: cs.sensor_type = int(val)
+			if (val := _safe_get(config, section, "camera_system")) is not None: cs.camera_system = int(val)
+			if (val := _safe_get(config, section, "camcnt")) is not None: cs.camcnt = int(val)
+			if (val := _safe_get(config, section, "pixel")) is not None: cs.pixel = int(val)
+			if (val := _safe_getboolean(config, section, "is_fft_legacy")) is not None: cs.is_fft_legacy = int(val)
+			if (val := _safe_getboolean(config, section, "led_off")) is not None: cs.led_off = int(val)
+			if (val := _safe_get(config, section, "sensor_gain")) is not None: cs.sensor_gain = int(val)
+			if (val := _safe_get(config, section, "adc_gain")) is not None: cs.adc_gain = int(val)
+			if (val := _safe_get(config, section, "temp_level")) is not None: cs.temp_level = int(val)
 			if (val := _safe_get(config, section, "bticnt")) is not None: cs.bticnt = int(val)
-			if (val := _safe_get(config, section, "gpxOffset")) is not None: cs.gpx_offset = int(val)
-			if (val := _safe_get(config, section, "lines")) is not None: cs.FFT_LINES = int(val)
-			if (val := _safe_get(config, section, "vfreq")) is not None: cs.VFREQ = int(val)
-			if (val := _safe_get(config, section, "fftmode")) is not None: cs.fft_mode = int(val)
-			if (val := _safe_get(config, section, "linesbinning")) is not None: cs.lines_binning = int(val)
-			if (val := _safe_get(config, section, "numberOfRegions")) is not None: cs.number_of_regions = int(val)
+			if (val := _safe_get(config, section, "gpx_offset")) is not None: cs.gpx_offset = int(val)
+			if (val := _safe_get(config, section, "fft_lines")) is not None: cs.fft_lines = int(val)
+			if (val := _safe_get(config, section, "vfreq")) is not None: cs.vfreq = int(val)
+			if (val := _safe_get(config, section, "fft_mode")) is not None: cs.fft_mode = int(val)
+			if (val := _safe_get(config, section, "lines_binning")) is not None: cs.lines_binning = int(val)
+			if (val := _safe_get(config, section, "number_of_regions")) is not None: cs.number_of_regions = int(val)
 			for i in range(0, 4):
-				if (val := _safe_get(config, section, f"regionSize{i+1}")) is not None: cs.region_size[i] = int(val)
+				if (val := _safe_get(config, section, f"region_size{i+1}")) is not None: cs.region_size[i] = int(val)
 			for i in range(0, 8):
 				for j in range(0, 8):
-					if (val := _safe_get(config, section, f"dacCameraChannel{j+1}Pos{i}")) is not None: cs.dac_output[i][j] = int(val)
+					if (val := _safe_get(config, section, f"dac_output{j+1}Pos{i}")) is not None: cs.dac_output[i][j] = int(val)
 			if (val := _safe_get(config, section, "tor")) is not None: cs.tor = int(val)
-			if (val := _safe_get(config, section, "adcMode")) is not None: cs.adc_mode = int(val)
-			if (val := _safe_get(config, section, "adcCustomValue")) is not None: cs.adc_custom_pattern = int(val)
-			if (val := _safe_get(config, section, "shutterBecIn10ns")) is not None: cs.bec_in_10ns = int(float(val))
-			if (val := _safe_get(config, section, "channelSelect")) is not None: cs.channel_select = int(val)
+			if (val := _safe_get(config, section, "adc_mode")) is not None: cs.adc_mode = int(val)
+			if (val := _safe_get(config, section, "adc_custom_pattern")) is not None: cs.adc_custom_pattern = int(val)
+			if (val := _safe_get(config, section, "bec_in_10ns")) is not None: cs.bec_in_10ns = int(float(val))
+			if (val := _safe_get(config, section, "channel_select")) is not None: cs.channel_select = int(val)
 			if (val := _safe_get(config, section, "IOCtrlImpactStartPixel")) is not None: cs.ioctrl_impact_start_pixel = int(val)
 			for i in range(0, 8):
-				if (val := _safe_get(config, section, f"Output{i+1}WidthIn5ns")) is not None: cs.ioctrl_output_width_in_5ns[i] = int(float(val))
-				if (val := _safe_get(config, section, f"Output{i+1}DelayIn5ns")) is not None: cs.ioctrl_output_delay_in_5ns[i] = int(float(val))
-			if (val := _safe_get(config, section, "T0PeriodIn10ns")) is not None: cs.ictrl_T0_period_in_10ns = int(float(val))
+				if (val := _safe_get(config, section, f"ioctrl_output_width_in_5ns_{i+1}")) is not None: cs.ioctrl_output_width_in_5ns[i] = int(float(val))
+				if (val := _safe_get(config, section, f"ioctrl_output_delay_in_5ns_{i+1}")) is not None: cs.ioctrl_output_delay_in_5ns[i] = int(float(val))
+			if (val := _safe_get(config, section, "ictrl_T0_period_in_10ns")) is not None: cs.ictrl_T0_period_in_10ns = int(float(val))
 			if (val := _safe_get(config, section, "dma_buffer_size_in_scans")) is not None: cs.dma_buffer_size_in_scans = int(val)
 			if (val := _safe_get(config, section, "tocnt")) is not None: cs.tocnt = int(val)
 			if (val := _safe_get(config, section, "sticnt")) is not None: cs.sticnt = int(val)
-			if (val := _safe_get(config, section, "sensorResetOrHsirEc")) is not None: cs.sensor_reset_or_hsir_ec = int(float(val))
-			if (val := _safe_getboolean(config, section, "writeDataToDisc")) is not None: cs.write_to_disc = int(val)
-			if (val := _safe_get(config, section, "filePath")) is not None: cs.file_path = val.encode('utf-8')
-			if (val := _safe_getboolean(config, section, "shiftS1S2ToNextScan")) is not None: cs.shift_s1s2_to_next_scan = int(val)
-			if (val := _safe_getboolean(config, section, "isCooledCameraLegacyMode")) is not None: cs.is_cooled_camera_legacy_mode = int(val)
+			if (val := _safe_get(config, section, "sensor_reset_or_hsir_ec")) is not None: cs.sensor_reset_or_hsir_ec = int(float(val))
+			if (val := _safe_getboolean(config, section, "write_to_disc")) is not None: cs.write_to_disc = int(val)
+			if (val := _safe_get(config, section, "file_path")) is not None: cs.file_path = val.encode('utf-8')
+			if (val := _safe_getboolean(config, section, "shift_s1s2_to_next_scan")) is not None: cs.shift_s1s2_to_next_scan = int(val)
+			if (val := _safe_getboolean(config, section, "is_cooled_camera_legacy_mode")) is not None: cs.is_cooled_camera_legacy_mode = int(val)
 			if (val := _safe_getboolean(config, section, "monitor")) is not None: cs.monitor = int(val)
-			if (val := _safe_get(config, section, "manipulateDataMode")) is not None: cs.manipulate_data_mode = int(val)
-			if (val := _safe_get(config, section, "manipulateDataCustomFactor")) is not None: cs.manipulate_data_custom_factor = float(val)
-			if (val := _safe_getboolean(config, section, "ecLegacyMode")) is not None: cs.ec_legacy_mode = int(val)
-			if (val := _safe_get(config, section, "timerResolutionMode")) is not None: cs.timer_resolution_mode = int(val)
+			if (val := _safe_get(config, section, "manipulate_data_mode")) is not None: cs.manipulate_data_mode = int(val)
+			if (val := _safe_get(config, section, "manipulate_data_custom_factor")) is not None: cs.manipulate_data_custom_factor = float(val)
+			if (val := _safe_getboolean(config, section, "ec_legacy_mode")) is not None: cs.ec_legacy_mode = int(val)
+			if (val := _safe_get(config, section, "timer_resolution_mode")) is not None: cs.timer_resolution_mode = int(val)
 
 def convert_error_code_to_msg(status: c_int) -> str:
 	"""
@@ -294,7 +294,7 @@ def copy_one_sample(drvno: int, sample: int, block: int, camera: int) -> list[in
 	Raises:
 		Exception: If the DLL call returns a non-zero status (error), an exception is raised with the error message.
 	"""
-	frame_buffer = (c_uint16 * settings.camera_settings[drvno].PIXEL)(0)
+	frame_buffer = (c_uint16 * settings.camera_settings[drvno].pixel)(0)
 	dll.DLLCopyOneSample.argtypes = [c_uint32, c_uint32, c_uint32, c_uint16, POINTER(c_uint16)]
 	status = dll.DLLCopyOneSample(c_uint32(drvno), c_uint32(sample), c_uint32(block), c_uint16(camera), frame_buffer)
 	if status != 0:
@@ -316,11 +316,11 @@ def copy_one_sample_multiple_boards(sample: int, block: int, camera: int) -> lis
 	Raises:
 		Exception: If the DLL call returns a non-zero status (error), an exception is raised with the error message.
 	"""
-	frame_buffer0 = (c_uint16 * (settings.camera_settings[0].PIXEL))(0)
-	frame_buffer1 = (c_uint16 * (settings.camera_settings[1].PIXEL))(0)
-	frame_buffer2 = (c_uint16 * (settings.camera_settings[2].PIXEL))(0)
-	frame_buffer3 = (c_uint16 * (settings.camera_settings[3].PIXEL))(0)
-	frame_buffer4 = (c_uint16 * (settings.camera_settings[4].PIXEL))(0)
+	frame_buffer0 = (c_uint16 * (settings.camera_settings[0].pixel))(0)
+	frame_buffer1 = (c_uint16 * (settings.camera_settings[1].pixel))(0)
+	frame_buffer2 = (c_uint16 * (settings.camera_settings[2].pixel))(0)
+	frame_buffer3 = (c_uint16 * (settings.camera_settings[3].pixel))(0)
+	frame_buffer4 = (c_uint16 * (settings.camera_settings[4].pixel))(0)
 	dll.DLLCopyOneSample_multipleBoards.argtypes = [c_uint32, c_uint32, c_uint16, POINTER(c_uint16), POINTER(c_uint16), POINTER(c_uint16), POINTER(c_uint16), POINTER(c_uint16)]
 	status = dll.DLLCopyOneSample_multipleBoards(c_uint32(sample), c_uint32(block), c_uint16(camera), frame_buffer0, frame_buffer1, frame_buffer2, frame_buffer3, frame_buffer4)
 	if status != 0:
@@ -348,7 +348,7 @@ def copy_one_block(drvno: int, block: int) -> list[int]:
 	Raises:
 		Exception: If the DLL call returns a non-zero status (error), an exception is raised with the error message.
 	"""
-	frame_buffer0 = (c_uint16 * (settings.camera_settings[drvno].PIXEL * settings.nos * settings.camera_settings[drvno].CAMCNT))(0)
+	frame_buffer0 = (c_uint16 * (settings.camera_settings[drvno].pixel * settings.nos * settings.camera_settings[drvno].camcnts))(0)
 	dll.DLLCopyOneBlock.argtypes = [c_uint32, c_uint16, POINTER(c_uint16)]
 	status = dll.DLLCopyOneBlock(c_uint32(drvno), c_uint16(block), frame_buffer0)
 	if status != 0:
@@ -368,11 +368,11 @@ def copy_one_block_multiple_boards(block: int) -> list[list[int]]:
 	Raises:
 		Exception: If the DLL call returns a non-zero status (error), an exception is raised with the error message.
 	"""
-	frame_buffer0 = (c_uint16 * (settings.camera_settings[0].PIXEL * settings.nos * settings.camera_settings[0].CAMCNT))(0)
-	frame_buffer1 = (c_uint16 * (settings.camera_settings[1].PIXEL * settings.nos * settings.camera_settings[1].CAMCNT))(0)
-	frame_buffer2 = (c_uint16 * (settings.camera_settings[2].PIXEL * settings.nos * settings.camera_settings[2].CAMCNT))(0)
-	frame_buffer3 = (c_uint16 * (settings.camera_settings[3].PIXEL * settings.nos * settings.camera_settings[3].CAMCNT))(0)
-	frame_buffer4 = (c_uint16 * (settings.camera_settings[4].PIXEL * settings.nos * settings.camera_settings[4].CAMCNT))(0)
+	frame_buffer0 = (c_uint16 * (settings.camera_settings[0].pixel * settings.nos * settings.camera_settings[0].camcnt))(0)
+	frame_buffer1 = (c_uint16 * (settings.camera_settings[1].pixel * settings.nos * settings.camera_settings[1].camcnt))(0)
+	frame_buffer2 = (c_uint16 * (settings.camera_settings[2].pixel * settings.nos * settings.camera_settings[2].camcnt))(0)
+	frame_buffer3 = (c_uint16 * (settings.camera_settings[3].pixel * settings.nos * settings.camera_settings[3].camcnt))(0)
+	frame_buffer4 = (c_uint16 * (settings.camera_settings[4].pixel * settings.nos * settings.camera_settings[4].camcnt))(0)
 	dll.DLLCopyOneBlock_multipleBoards.argtypes = [c_uint16, POINTER(c_uint16), POINTER(c_uint16), POINTER(c_uint16), POINTER(c_uint16), POINTER(c_uint16)]
 	status = dll.DLLCopyOneBlock_multipleBoards(c_uint16(block), frame_buffer0, frame_buffer1, frame_buffer2, frame_buffer3, frame_buffer4)
 	if status != 0:
@@ -401,7 +401,7 @@ def copy_one_block_of_one_camera(drvno: int, block: int, camera: int) -> list[in
 	Raises:
 		Exception: If the DLL call returns a non-zero status (error), an exception is raised with the error message.
 	"""
-	frame_buffer0 = (c_uint16 * settings.camera_settings[drvno].PIXEL * settings.nos)(0)
+	frame_buffer0 = (c_uint16 * settings.camera_settings[drvno].pixel * settings.nos)(0)
 	dll.DLLCopyOneBlockOfOneCamera.argtypes = [c_uint32, c_uint32, c_uint16, POINTER(c_uint16)]
 	status = dll.DLLCopyOneBlockOfOneCamera(c_uint32(drvno), c_uint32(block), c_uint16(camera), frame_buffer0)
 	if status != 0:
@@ -422,11 +422,11 @@ def copy_one_block_of_one_camera_multiple_boards(block: int, camera: int) -> lis
 	Raises:
 		Exception: If the DLL call returns a non-zero status (error), an exception is raised with the error message.
 	"""
-	frame_buffer0 = (c_uint16 * (settings.camera_settings[0].PIXEL * settings.nos))(0)
-	frame_buffer1 = (c_uint16 * (settings.camera_settings[1].PIXEL * settings.nos))(0)
-	frame_buffer2 = (c_uint16 * (settings.camera_settings[2].PIXEL * settings.nos))(0)
-	frame_buffer3 = (c_uint16 * (settings.camera_settings[3].PIXEL * settings.nos))(0)
-	frame_buffer4 = (c_uint16 * (settings.camera_settings[4].PIXEL * settings.nos))(0)
+	frame_buffer0 = (c_uint16 * (settings.camera_settings[0].pixel * settings.nos))(0)
+	frame_buffer1 = (c_uint16 * (settings.camera_settings[1].pixel * settings.nos))(0)
+	frame_buffer2 = (c_uint16 * (settings.camera_settings[2].pixel * settings.nos))(0)
+	frame_buffer3 = (c_uint16 * (settings.camera_settings[3].pixel * settings.nos))(0)
+	frame_buffer4 = (c_uint16 * (settings.camera_settings[4].pixel * settings.nos))(0)
 	dll.DLLCopyOneBlockOfOneCamera_multipleBoards.argtypes = [c_uint16, c_uint16, POINTER(c_uint16), POINTER(c_uint16), POINTER(c_uint16), POINTER(c_uint16), POINTER(c_uint16)]
 	status = dll.DLLCopyOneBlockOfOneCamera_multipleBoards(c_uint16(block), c_uint16(camera), frame_buffer0, frame_buffer1, frame_buffer2, frame_buffer3, frame_buffer4)
 	if status != 0:
@@ -453,7 +453,7 @@ def copy_all_data(drvno: int) -> list[int]:
 	Raises:
 		Exception: If the DLL call returns a non-zero status (error), an exception is raised with the error message.
 	"""
-	frame_buffer0 = (c_uint16 * (settings.camera_settings[drvno].PIXEL * settings.nos * settings.nob * settings.camera_settings[drvno].CAMCNT))(0)
+	frame_buffer0 = (c_uint16 * (settings.camera_settings[drvno].pixel * settings.nos * settings.nob * settings.camera_settings[drvno].camcnt))(0)
 	dll.DLLCopyAllData.argtypes = [c_uint32, POINTER(c_uint16)]
 	status = dll.DLLCopyAllData(c_uint32(drvno), frame_buffer0)
 	if status != 0:
@@ -474,7 +474,7 @@ def copy_all_data_2d(drvno: int) -> list[list[int]]:
 		Exception: If the DLL call returns a non-zero status (error), an exception is raised with the error message.
 	"""
 	frame_buffer_1d = copy_all_data(drvno)
-	pixel = settings.camera_settings[drvno].PIXEL
+	pixel = settings.camera_settings[drvno].pixel
 	nrows = len(frame_buffer_1d) // pixel
 	frame_buffer_2d = [frame_buffer_1d[i*pixel:(i+1)*pixel] for i in range(nrows)]
 	return frame_buffer_2d
@@ -489,11 +489,11 @@ def copy_all_data_multiple_boards() -> list[list[int]]:
 	Raises:
 		Exception: If the DLL call returns a non-zero status (error), an exception is raised with the error message.
 	"""
-	frame_buffer0 = (c_uint16 * settings.camera_settings[0].PIXEL * settings.nos * settings.nob * settings.camera_settings[0].CAMCNT)(0)
-	frame_buffer1 = (c_uint16 * settings.camera_settings[1].PIXEL * settings.nos * settings.nob * settings.camera_settings[1].CAMCNT)(0)
-	frame_buffer2 = (c_uint16 * settings.camera_settings[2].PIXEL * settings.nos * settings.nob * settings.camera_settings[2].CAMCNT)(0)
-	frame_buffer3 = (c_uint16 * settings.camera_settings[3].PIXEL * settings.nos * settings.nob * settings.camera_settings[3].CAMCNT)(0)
-	frame_buffer4 = (c_uint16 * settings.camera_settings[4].PIXEL * settings.nos * settings.nob * settings.camera_settings[4].CAMCNT)(0)
+	frame_buffer0 = (c_uint16 * settings.camera_settings[0].pixel * settings.nos * settings.nob * settings.camera_settings[0].camcnt)(0)
+	frame_buffer1 = (c_uint16 * settings.camera_settings[1].pixel * settings.nos * settings.nob * settings.camera_settings[1].camcnt)(0)
+	frame_buffer2 = (c_uint16 * settings.camera_settings[2].pixel * settings.nos * settings.nob * settings.camera_settings[2].camcnt)(0)
+	frame_buffer3 = (c_uint16 * settings.camera_settings[3].pixel * settings.nos * settings.nob * settings.camera_settings[3].camcnt)(0)
+	frame_buffer4 = (c_uint16 * settings.camera_settings[4].pixel * settings.nos * settings.nob * settings.camera_settings[4].camcnt)(0)
 	dll.DLLCopyAllData_multipleBoards.argtypes = [POINTER(c_uint16), POINTER(c_uint16), POINTER(c_uint16), POINTER(c_uint16), POINTER(c_uint16)]
 	status = dll.DLLCopyAllData_multipleBoards(frame_buffer0, frame_buffer1, frame_buffer2, frame_buffer3, frame_buffer4)
 	if status != 0:
@@ -721,38 +721,38 @@ def set_measure_done_hook(hook_function: Callable[[], None]) -> object:
 	dll.DLLSetMeasureDoneHook(hook_func_ref)
 	return hook_func_ref
 
-def set_block_start_hook(hook_function: Callable[[], None]) -> object:
+def set_block_start_hook(hook_function: Callable[[int], None]) -> object:
 	"""
 	Set a hook function that will be called when a new block starts.
 
 	Args:
-		hook_function: The function to call when a new block starts.
+		hook_function: The function to call when a new block starts. The function should accept one argument, which is the block index.
 	"""
-	dll.DLLSetBlockStartHook.argtypes = [CFUNCTYPE(None)]
-	hook_func_ref = CFUNCTYPE(None)(hook_function)
+	dll.DLLSetBlockStartHook.argtypes = [CFUNCTYPE(None, c_uint32)]
+	hook_func_ref = CFUNCTYPE(None, c_uint32)(hook_function)
 	dll.DLLSetBlockStartHook(hook_func_ref)
 	return hook_func_ref
 
-def set_block_done_hook(hook_function: Callable[[], None]) -> object:
+def set_block_done_hook(hook_function: Callable[[int], None]) -> object:
 	"""
 	Set a hook function that will be called when a block is done.
 
 	Args:
-		hook_function: The function to call when a block is done.
+		hook_function: The function to call when a block is done.  The function should accept one argument, which is the block index.
 	"""
-	dll.DLLSetBlockDoneHook.argtypes = [CFUNCTYPE(None)]
-	hook_func_ref = CFUNCTYPE(None)(hook_function)
+	dll.DLLSetBlockDoneHook.argtypes = [CFUNCTYPE(None, c_uint32)]
+	hook_func_ref = CFUNCTYPE(None, c_uint32)(hook_function)
 	dll.DLLSetBlockDoneHook(hook_func_ref)
 	return hook_func_ref
 
-def set_all_blocks_done_hook(hook_function: Callable[[], None]) -> object:
+def set_all_blocks_done_hook(hook_function: Callable[[int], None]) -> object:
 	"""
 	Set a hook function that will be called when all blocks are done.
 
 	Args:
-		hook_function: The function to call when all blocks are done.
+		hook_function: The function to call when all blocks are done. The function should accept one argument, which is the number of the completed measurement cycle.
 	"""
-	dll.DLLSetAllBlocksDoneHook.argtypes = [CFUNCTYPE(None)]
-	hook_func_ref = CFUNCTYPE(None)(hook_function)
+	dll.DLLSetAllBlocksDoneHook.argtypes = [CFUNCTYPE(None, c_uint64)]
+	hook_func_ref = CFUNCTYPE(None, c_uint64)(hook_function)
 	dll.DLLSetAllBlocksDoneHook(hook_func_ref)
 	return hook_func_ref
