@@ -178,6 +178,7 @@ def load_config_file(config_file: str):
 			if (val := _safe_get(config, section, "fft_mode")) is not None: cs.fft_mode = int(val)
 			if (val := _safe_get(config, section, "lines_binning")) is not None: cs.lines_binning = int(val)
 			if (val := _safe_get(config, section, "number_of_regions")) is not None: cs.number_of_regions = int(val)
+			if (val := _safe_get(config, section, "s1s2_read_delay_in_10ns")) is not None: cs.s1s2_read_delay_in_10ns = int(float(val))
 			for i in range(0, 4):
 				if (val := _safe_get(config, section, f"region_size{i+1}")) is not None: cs.region_size[i] = int(val)
 			for i in range(0, 8):
@@ -201,7 +202,7 @@ def load_config_file(config_file: str):
 			if (val := _safe_get(config, section, "file_path")) is not None: cs.file_path = val.encode('utf-8')
 			if (val := _safe_getboolean(config, section, "shift_s1s2_to_next_scan")) is not None: cs.shift_s1s2_to_next_scan = int(val)
 			if (val := _safe_getboolean(config, section, "is_cooled_camera_legacy_mode")) is not None: cs.is_cooled_camera_legacy_mode = int(val)
-			if (val := _safe_getboolean(config, section, "monitor")) is not None: cs.monitor = int(val)
+			if (val := _safe_get(config, section, "monitor")) is not None: cs.monitor = int(val)
 			if (val := _safe_get(config, section, "manipulate_data_mode")) is not None: cs.manipulate_data_mode = int(val)
 			if (val := _safe_get(config, section, "manipulate_data_custom_factor")) is not None: cs.manipulate_data_custom_factor = float(val)
 			if (val := _safe_getboolean(config, section, "ec_legacy_mode")) is not None: cs.ec_legacy_mode = int(val)
