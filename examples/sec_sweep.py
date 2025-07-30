@@ -1,8 +1,8 @@
-## @file: sensor_reset_sweep.py
-# @brief: This script does a sweep of the parameter sensor reset.
+## @file: sec_sweep.py
+# @brief: This script does a sweep of the parameter SEC.
 # @details:
 # @author: Florian Hahn
-# @date: 25.06.2025
+# @date: 30.07.2025
 # @copyright: Copyright (c) 2025, Entwicklungsbüro Stresing. Released as public domain under the Unlicense.
 
 # matplotlib is used for the data plot
@@ -24,13 +24,13 @@ list_y2 = []
 list_y3 = []
 list_y4 = []
 # plot this pixel
-pixel_plot = 506
+pixel_plot = 588
 # this is the reset time at which the sweep starts
-start_value = stresing.settings.camera_settings[drvno].sensor_reset_or_hsir_ec
+start_value = stresing.settings.camera_settings[drvno].sec_in_10ns
 # this is the exposure time at which the sweep stops
-stop_value = 11500
+stop_value = 400
 # this is the step size for the first measurements
-step_size = 100
+step_size = 10
 measurement_cnt = int((stop_value - start_value) / step_size)
 
 print("Create a measurement with reset time 0")
@@ -56,19 +56,19 @@ plt.plot(avg2, label='Off 1')
 plt.plot(avg3, label='Off 2')
 plt.xlabel('Pixel')
 plt.ylabel('Intensity')
-plt.title('Average Intensity for each sample type for reset time 0')
+plt.title('Average Intensity for each sample type for SEC time 0')
 plt.legend()
 plt.grid(True)
 plt.tight_layout()
 plt.show()
 
 for i in range(measurement_cnt):
-	print("Measurement " + str(i + 1) + " of " + str(measurement_cnt) + ", sensor reset = " + str(stresing.settings.camera_settings[drvno].sensor_reset_or_hsir_ec) + " (" + str(stresing.settings.camera_settings[drvno].sensor_reset_or_hsir_ec * 4) +" ns)")
+	print("Measurement " + str(i + 1) + " of " + str(measurement_cnt) + ", sensor reset = " + str(stresing.settings.camera_settings[drvno].sec_in_10ns) + " (" + str(stresing.settings.camera_settings[drvno].sec_in_10ns * 10) +" ns)")
 	# Initialize the measurement.
 	stresing.init_measurement()
 	# Start the measurement. This is the blocking call, which means it will return when the measurement is finished. This is done to ensure that no data access happens before all data is collected.
 	stresing.start_measurement_blocking()
-	list_x.append(stresing.settings.camera_settings[drvno].sensor_reset_or_hsir_ec * 4)
+	list_x.append(stresing.settings.camera_settings[drvno].sec_in_10ns * 10)
 	# Get all the data in a 2D list
 	frame_buffer_2d = stresing.copy_all_data_2d(drvno)
 	# Drop the first 200 samples
@@ -83,7 +83,7 @@ for i in range(measurement_cnt):
 	list_y2.append(avg1[pixel_plot])
 	list_y3.append(avg2[pixel_plot])
 	list_y4.append(avg3[pixel_plot])
-	stresing.settings.camera_settings[drvno].sensor_reset_or_hsir_ec += step_size
+	stresing.settings.camera_settings[drvno].sec_in_10ns += step_size
 
 # Plot all four lists as separate graphs in one figure
 plt.figure(figsize=(10, 8))
@@ -91,15 +91,15 @@ plt.plot(list_x, list_y1, label='On 1')
 plt.plot(list_x, list_y2, label='On 2')
 plt.plot(list_x, list_y3, label='Off 1')
 plt.plot(list_x, list_y4, label='Off 2')
-plt.xlabel('sensor reset in ns')
-plt.ylabel('Pixel Value')
-plt.title('Sensor Reset Sweep - Pixel ' + str(pixel_plot))
+plt.xlabel('sec in ns')
+plt.ylabel('Intensity at pixel ' + str(pixel_plot))
+plt.title('SEC Sweep - Pixel ' + str(pixel_plot))
 plt.grid(True)
 plt.legend()
 plt.tight_layout()
 plt.show()
 
-print("Create a measurement with reset time " + str(stresing.settings.camera_settings[drvno].sensor_reset_or_hsir_ec * 4) + " ns")
+print("Create a measurement with SEC time " + str(stresing.settings.camera_settings[drvno].sec_in_10ns * 10) + " ns")
 # Initialize the measurement.
 stresing.init_measurement()
 # Start the measurement. This is the blocking call, which means it will return when the measurement is finished. This is done to ensure that no data access happens before all data is collected.
@@ -122,7 +122,7 @@ plt.plot(avg2, label='Off 1')
 plt.plot(avg3, label='Off 2')
 plt.xlabel('Pixel')
 plt.ylabel('Intensity')
-plt.title('Average Intensity for each sample type for reset time ' + str(stresing.settings.camera_settings[drvno].sensor_reset_or_hsir_ec * 4) + ' ns')
+plt.title('Average Intensity for each sample type for SEC time ' + str(stresing.settings.camera_settings[drvno].sec_in_10ns * 10) + ' ns')
 plt.legend()
 plt.grid(True)
 plt.tight_layout()
