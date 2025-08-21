@@ -757,3 +757,9 @@ def set_all_blocks_done_hook(hook_function: Callable[[int], None]) -> object:
 	hook_func_ref = CFUNCTYPE(None, c_uint64)(hook_function)
 	dll.DLLSetAllBlocksDoneHook(hook_func_ref)
 	return hook_func_ref
+
+def cam_send_data(drvno: int, maddr: int, adaddr: int, data: int) -> None:
+	dll.DLLCam_SendData.argtypes = [c_uint32, c_uint8, c_uint8, c_uint16]
+	status = dll.DLLCam_SendData(c_uint32(drvno), c_uint8(maddr), c_uint8(adaddr), c_uint16(data))
+	if status != 0:
+		raise Exception(convert_error_code_to_msg(status))
