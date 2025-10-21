@@ -26,7 +26,7 @@ def all_blocks_done_hook(measurement_number: int):
 number_of_boards = stresing.init_driver()
 # Set all settings that are needed for the measurement in config.ini. The file config.ini is also compatible with the exported settings of Escam. Settings that are not found in the file, will be left as default. You can find a description of all settings here: https://entwicklungsburo-stresing.github.io/structmeasurement__settings.html
 stresing.load_config_file("config.ini")
-# Set all hooks
+# Set all hooks. It is important to save the returned references to prevent them from being garbage collected.
 measure_started_ref = stresing.set_measure_start_hook(measure_start_hook)
 measure_done_ref = stresing.set_measure_done_hook(measure_done_hook)
 block_started_ref = stresing.set_block_start_hook(block_start_hook)
