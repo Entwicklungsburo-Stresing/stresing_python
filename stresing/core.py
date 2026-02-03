@@ -374,6 +374,34 @@ def copy_one_block(drvno: int, block: int) -> List[int]:
 		raise Exception(convert_error_code_to_msg(status))
 	return list(frame_buffer0)
 
+import numpy as np
+def copy_one_block_numpy(drvno: int, block: int) -> List[int]:
+    """
+    Copy one block from the specified board and block number.
+
+    Args:
+        drvno (int): Board number.
+        block (int): Block number.
+
+    Returns:
+        numpy.ndarray: The frame buffer data as numpy ndarray with type
+                       numpy.uint16
+
+    Raises:
+        Exception: If the DLL call returns a non-zero status (error), an exception is raised with the error message.
+    """
+    frame_buffer0 = np.empty(settings.camera_settings[drvno].pixel * settings.nos * settings.camera_settings[drvno].camcnt, dtype=np.uint16)
+    dll.DLLCopyOneBlock.argtypes = [c_uint32, c_uint16, POINTER(c_uint16)]
+    dll.DLLCopyOneBlock.restype = c_int
+
+    status = \
+        dll.DLLCopyOneBlock(c_uint32(drvno), c_uint16(block),
+                            frame_buffer0.ctypes\
+                            .data_as(ctypes.POINTER(ctypes.c_uint16)))
+    if status != 0:
+        raise Exception(convert_error_code_to_msg(status))
+    return frame_buffer0
+
 def copy_one_block_multiple_boards(block: int) -> List[List[int]]:
 	"""
 	Copy one block from all boards for the specified block number.
