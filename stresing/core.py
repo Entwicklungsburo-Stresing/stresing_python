@@ -10,6 +10,7 @@ from ctypes import c_uint8, POINTER, c_uint32, c_double, Structure, c_char, c_in
 import os
 import configparser
 from typing import Callable, List, Tuple
+import platform
 
 # Load ESLSCDLL.dll
 if os.name == 'nt':
@@ -17,6 +18,11 @@ if os.name == 'nt':
 	file_path = os.path.abspath(os.path.dirname(__file__))
 	print(file_path)
 	dll = WinDLL(file_path + "/ESLSCDLL")
+elif 'Debian 6' in platform.version():
+	dll = ctypes.cdll.LoadLibrary('libESLSCDLL.so')
+        # Note: for this to work, the shell's environment variable
+        # LD_LIBRARY_PATH has to point to the directory which contains
+        # libESLSCDLL.so.
 else:
 	from ctypes.util import find_library
 	from ctypes import CDLL
