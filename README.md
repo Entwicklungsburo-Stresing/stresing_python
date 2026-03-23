@@ -25,7 +25,12 @@ python -m examples.simple_blocking_measurement
 ## Installing as module
 You can install the module stresing with
 ```
-pip install -e .
+pip install stresing
+```
+
+For development, clone the repository and install with
+```
+pip install -e .[dev]
 ```
 
 ## License
