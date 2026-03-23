@@ -8,19 +8,22 @@
 import ctypes
 from ctypes import c_uint8, POINTER, c_uint32, c_double, Structure, c_char, c_int, c_char_p, c_uint16, c_int64, CFUNCTYPE, c_uint64
 import os
+import logging
 import configparser
 from typing import Callable, List, Tuple
 
+logger = logging.getLogger(__name__)
 # Load ESLSCDLL.dll
 if os.name == 'nt':
 	from ctypes import WinDLL
 	file_path = os.path.abspath(os.path.dirname(__file__))
-	print(file_path)
+	logger.debug(f"Loading WinDLL ESLSCDLL from: {file_path}")
 	dll = WinDLL(file_path + "/ESLSCDLL")
 else:
 	from ctypes.util import find_library
 	from ctypes import CDLL
 	lib_path = find_library("ESLSCDLL")
+	logger.debug(f"Loading CDLL ESLSCDLL from: {lib_path}")
 	if not lib_path:
 		raise ImportError("Could not find ESLSCDLL library")
 	dll = CDLL(lib_path)
