@@ -31,4 +31,4 @@ dev = ["build", "twine"]
 where = ["."]
 
 [tool.setuptools.package-data]
-stresing = ["*.dll"]
+stresing = ["*.dll", "*.so"]
