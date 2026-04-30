@@ -20,13 +20,17 @@ if os.name == 'nt':
 	logger.debug(f"Loading WinDLL ESLSCDLL from: {file_path}")
 	dll = WinDLL(file_path + "/ESLSCDLL")
 else:
-	from ctypes.util import find_library
-	from ctypes import CDLL
-	lib_path = find_library("ESLSCDLL")
-	logger.debug(f"Loading CDLL ESLSCDLL from: {lib_path}")
-	if not lib_path:
-		raise ImportError("Could not find ESLSCDLL library")
-	dll = CDLL(lib_path)
+    from ctypes import CDLL
+    file_path = os.path.abspath(os.path.dirname(__file__))
+    lib_local = os.path.join(file_path, "libESLSCDLL.so")
+    if os.path.exists(lib_local):
+        dll = CDLL(lib_local)
+    else:
+        from ctypes.util import find_library
+        lib_path = find_library("ESLSCDLL")
+        if not lib_path:
+            raise ImportError("Could not find ESLSCDLL library")
+        dll = CDLL(lib_path)
 
 # These are the settings structs. It must be the same like in EBST_CAM/shared_src/struct.h regarding order, data formats and size.
 # You can find a description of all settings here: https://entwicklungsburo-stresing.github.io/structmeasurement__settings.html
