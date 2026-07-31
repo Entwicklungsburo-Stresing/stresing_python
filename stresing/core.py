@@ -199,7 +199,7 @@ def load_config_file(config_file: str):
 			if (val := _safe_get(config, section, "adc_custom_pattern")) is not None: cs.adc_custom_pattern = int(val)
 			if (val := _safe_get(config, section, "bec_in_10ns")) is not None: cs.bec_in_10ns = int(float(val))
 			if (val := _safe_get(config, section, "channel_select")) is not None: cs.channel_select = int(val)
-			if (val := _safe_get(config, section, "IOCtrlImpactStartPixel")) is not None: cs.ioctrl_impact_start_pixel = int(val)
+			if (val := _safe_get(config, section, "ioctrl_impact_start_pixel")) is not None: cs.ioctrl_impact_start_pixel = int(val)
 			for i in range(0, 8):
 				if (val := _safe_get(config, section, f"ioctrl_output_width_in_5ns_{i+1}")) is not None: cs.ioctrl_output_width_in_5ns[i] = int(float(val))
 				if (val := _safe_get(config, section, f"ioctrl_output_delay_in_5ns_{i+1}")) is not None: cs.ioctrl_output_delay_in_5ns[i] = int(float(val))
