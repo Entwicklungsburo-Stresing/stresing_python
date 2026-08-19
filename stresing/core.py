@@ -824,3 +824,40 @@ def cam_send_data(drvno: int, maddr: int, adaddr: int, data: int) -> None:
 	status = dll.DLLCam_SendData(c_uint32(drvno), c_uint8(maddr), c_uint8(adaddr), c_uint16(data))
 	if status != 0:
 		raise Exception(convert_error_code_to_msg(status))
+
+def dump_debug_info(drvno: int) -> str:
+	dll.DLLDumpS0Registers.argtypes = [c_uint32, POINTER(c_char_p)]
+	dll.DLLDumpS0Registers.restype = c_int
+	s0registers = c_char_p()
+	status = dll.DLLDumpS0Registers(c_uint32(drvno), ctypes.byref(s0registers))
+	if status != 0:
+		raise Exception(convert_error_code_to_msg(status))
+
+	dll.DLLDumpHumanReadableS0Registers.argtypes = [c_uint32, POINTER(c_char_p)]
+	dll.DLLDumpHumanReadableS0Registers.restype = c_int
+	human_readable = c_char_p()
+	status = dll.DLLDumpHumanReadableS0Registers(c_uint32(drvno), ctypes.byref(human_readable))
+	if status != 0:
+		raise Exception(convert_error_code_to_msg(status))
+
+	dll.DLLDumpMeasurementSettings.argtypes = [POINTER(c_char_p)]
+	dll.DLLDumpMeasurementSettings.restype = c_int
+	measurement_settings = c_char_p()
+	status = dll.DLLDumpMeasurementSettings(ctypes.byref(measurement_settings))
+	if status != 0:
+		raise Exception(convert_error_code_to_msg(status))
+
+	dll.DLLDumpCameraSettings.argtypes = [c_uint32, POINTER(c_char_p)]
+	dll.DLLDumpCameraSettings.restype = c_int
+	camera_settings = c_char_p()
+	status = dll.DLLDumpCameraSettings(c_uint32(drvno), ctypes.byref(camera_settings))
+	if status != 0:
+		raise Exception(convert_error_code_to_msg(status))
+	
+	# Merge the strings into one for easier debugging
+	debug_info = c_char_p()
+	debug_info.value = (s0registers.value or b'') + b'\n'
+	debug_info.value += human_readable.value or b''
+	debug_info.value += measurement_settings.value or b''
+	debug_info.value += camera_settings.value or b''
+	return debug_info.value.decode() if debug_info.value is not None else ""
