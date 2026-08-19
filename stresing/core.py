@@ -20,17 +20,17 @@ if os.name == 'nt':
 	logger.debug(f"Loading WinDLL ESLSCDLL from: {file_path}")
 	dll = WinDLL(file_path + "/ESLSCDLL")
 else:
-    from ctypes import CDLL
-    file_path = os.path.abspath(os.path.dirname(__file__))
-    lib_local = os.path.join(file_path, "libESLSCDLL.so")
-    if os.path.exists(lib_local):
-        dll = CDLL(lib_local)
-    else:
-        from ctypes.util import find_library
-        lib_path = find_library("ESLSCDLL")
-        if not lib_path:
-            raise ImportError("Could not find ESLSCDLL library")
-        dll = CDLL(lib_path)
+	from ctypes import CDLL
+	file_path = os.path.abspath(os.path.dirname(__file__))
+	lib_local = os.path.join(file_path, "libESLSCDLL.so")
+	if os.path.exists(lib_local):
+		dll = CDLL(lib_local)
+	else:
+		from ctypes.util import find_library
+		lib_path = find_library("ESLSCDLL")
+		if not lib_path:
+			raise ImportError("Could not find ESLSCDLL library")
+		dll = CDLL(lib_path)
 
 # These are the settings structs. It must be the same like in EBST_CAM/shared_src/struct.h regarding order, data formats and size.
 # You can find a description of all settings here: https://entwicklungsburo-stresing.github.io/structmeasurement__settings.html
@@ -376,31 +376,31 @@ def copy_one_block(drvno: int, block: int) -> List[int]:
 
 import numpy as np
 def copy_one_block_numpy(drvno: int, block: int) -> List[int]:
-    """
-    Copy one block from the specified board and block number.
+	"""
+	Copy one block from the specified board and block number.
 
-    Args:
-        drvno (int): Board number.
-        block (int): Block number.
+	Args:
+		drvno (int): Board number.
+		block (int): Block number.
 
-    Returns:
-        numpy.ndarray: The frame buffer data as numpy ndarray with type
-                       numpy.uint16
+	Returns:
+		numpy.ndarray: The frame buffer data as numpy ndarray with type
+					   numpy.uint16
 
-    Raises:
-        Exception: If the DLL call returns a non-zero status (error), an exception is raised with the error message.
-    """
-    frame_buffer0 = np.empty(settings.camera_settings[drvno].pixel * settings.nos * settings.camera_settings[drvno].camcnt, dtype=np.uint16)
-    dll.DLLCopyOneBlock.argtypes = [c_uint32, c_uint16, POINTER(c_uint16)]
-    dll.DLLCopyOneBlock.restype = c_int
+	Raises:
+		Exception: If the DLL call returns a non-zero status (error), an exception is raised with the error message.
+	"""
+	frame_buffer0 = np.empty(settings.camera_settings[drvno].pixel * settings.nos * settings.camera_settings[drvno].camcnt, dtype=np.uint16)
+	dll.DLLCopyOneBlock.argtypes = [c_uint32, c_uint16, POINTER(c_uint16)]
+	dll.DLLCopyOneBlock.restype = c_int
 
-    status = \
-        dll.DLLCopyOneBlock(c_uint32(drvno), c_uint16(block),
-                            frame_buffer0.ctypes\
-                            .data_as(ctypes.POINTER(ctypes.c_uint16)))
-    if status != 0:
-        raise Exception(convert_error_code_to_msg(status))
-    return frame_buffer0
+	status = \
+		dll.DLLCopyOneBlock(c_uint32(drvno), c_uint16(block),
+							frame_buffer0.ctypes\
+							.data_as(ctypes.POINTER(ctypes.c_uint16)))
+	if status != 0:
+		raise Exception(convert_error_code_to_msg(status))
+	return frame_buffer0
 
 def copy_one_block_multiple_boards(block: int) -> List[List[int]]:
 	"""
