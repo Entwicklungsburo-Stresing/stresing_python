@@ -3,12 +3,18 @@
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
-This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html) and [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/).
+This project uses [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/).
+The version is derrived from the main library [ESLSCDLL](https://github.com/Entwicklungsburo-Stresing/EBST_CAM) which uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
 ### Added
 ### Changed
 ### Removed
 ### Fixed
-* Fix config parsing: change IOCtrlImpactStartPixel to ioctrl_impact_start_pixel
 ### Deprecated
+
+## 4.21.0.3 - 2026-08-19
+### Added
+* Add function dump_debug_info to core.py
+### Fixed
+* Fix config parsing: change IOCtrlImpactStartPixel to ioctrl_impact_start_pixel
