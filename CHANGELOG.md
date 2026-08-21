@@ -13,6 +13,10 @@ The version is derrived from the main library [ESLSCDLL](https://github.com/Entw
 ### Fixed
 ### Deprecated
 
+## 4.22.0 - 2026-08-21
+### Changed
+* Update ESLSCDLL to 4.22.0
+
 ## 4.21.0.3 - 2026-08-19
 ### Added
 * Add function dump_debug_info to core.py
