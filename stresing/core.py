@@ -861,3 +861,33 @@ def dump_debug_info(drvno: int) -> str:
 	debug_info.value += measurement_settings.value or b''
 	debug_info.value += camera_settings.value or b''
 	return debug_info.value.decode() if debug_info.value is not None else ""
+
+def get_measure_on(drvno: int) -> bool:
+	"""
+	Check if measure on bit is set.
+
+	Args:
+		drvno (int): The board number (driver number) to check.
+	"""
+	dll.DLLGetMeasureOn.argtypes = [ctypes.c_uint32, ctypes.POINTER(ctypes.c_bool)]
+	dll.DLLGetMeasureOn.restype = ctypes.c_int
+	measure_on = ctypes.c_bool()
+	status = dll.DLLGetMeasureOn(c_uint32(drvno), ctypes.byref(measure_on))
+	if status != 0:
+		raise Exception(convert_error_code_to_msg(status))
+	return measure_on.value	
+
+def get_block_on(drvno: int) -> bool:
+	"""
+	Check if block on bit is set.
+
+	Args:
+		drvno (int): The board number (driver number) to check.
+	"""
+	dll.DLLGetBlockOn.argtypes = [ctypes.c_uint32, ctypes.POINTER(ctypes.c_bool)]
+	dll.DLLGetBlockOn.restype = ctypes.c_int
+	block_on = ctypes.c_bool()
+	status = dll.DLLGetBlockOn(c_uint32(drvno), ctypes.byref(block_on))
+	if status != 0:
+		raise Exception(convert_error_code_to_msg(status))
+	return block_on.value
