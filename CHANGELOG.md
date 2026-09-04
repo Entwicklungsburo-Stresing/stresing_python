@@ -13,6 +13,14 @@ The version is derrived from the main library [ESLSCDLL](https://github.com/Entw
 ### Fixed
 ### Deprecated
 
+## 4.22.1 - 2026-09-04
+### Changed
+* Update ESLSCDLL to 4.22.1
+### Added
+* Add get_measure_on to core.py
+* Add get_block_on to core.py
+* Add nonblocking_multiple_measurements to examples
+
 ## 4.22.0 - 2026-08-21
 ### Changed
 * Update ESLSCDLL to 4.22.0
