@@ -13,6 +13,10 @@ The version is derrived from the main library [ESLSCDLL](https://github.com/Entw
 ### Fixed
 ### Deprecated
 
+## 4.23.0 - 2026-10-07
+### Changed
+* Update ESLSCDLL to 4.23.0
+
 ## 4.22.1 - 2026-09-04
 ### Changed
 * Update ESLSCDLL to 4.22.1
