@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "stresing"
-version = "4.23.0"
+version = "4.24.0"
 description = "Module to operate Stresing cameras"
 authors = [{name = "Florian Hahn"}]
 readme = "README.md"
