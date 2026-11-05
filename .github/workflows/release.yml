@@ -1,0 +1,182 @@
+name: Release
+
+# Releases a new version when pyproject.toml on master contains a version that has no tag yet.
+# ci/release-test is used to test this workflow: releases from there are pre-releases and go to TestPyPI.
+on:
+  push:
+    branches: [ master, ci/release-test ]
+
+jobs:
+  # Find out if there is something to release and if it is a test
+  prepare:
+    runs-on: ubuntu-24.04
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      eslscdll: ${{ steps.version.outputs.eslscdll }}
+      release: ${{ steps.version.outputs.release }}
+      test: ${{ steps.version.outputs.test }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Read version and check for existing tag
+        id: version
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          version=$(python3 -c "import tomllib; print(tomllib.load(open('pyproject.toml', 'rb'))['project']['version'])")
+          eslscdll="${version%%.post*}"    # 4.25.0.post1 -> 4.25.0 (ESLSCDLL version, Nextcloud folder)
+          echo "Version: $version (ESLSCDLL $eslscdll)"
+
+          if git ls-remote --exit-code --tags origin "$version" > /dev/null; then
+            echo "Tag $version already exists, nothing to release"
+            release=false
+          else
+            release=true
+          fi
+
+          # test release: pushed to the test branch, or the EBST_CAM release is a pre-release
+          ebst_prerelease=$(gh release view "$eslscdll" --repo Entwicklungsburo-Stresing/EBST_CAM \
+            --json isPrerelease --jq .isPrerelease 2> /dev/null || echo false)
+          if [ "$GITHUB_REF_NAME" != master ] || [ "$ebst_prerelease" = true ]; then
+            test=true
+          else
+            test=false
+          fi
+          echo "Release: $release, test: $test"
+
+          {
+            echo "version=$version"
+            echo "eslscdll=$eslscdll"
+            echo "release=$release"
+            echo "test=$test"
+          } >> "$GITHUB_OUTPUT"
+
+  # Create the GitHub release (this also creates the tag on the pushed commit)
+  release:
+    needs: prepare
+    if: needs.prepare.outputs.release == 'true'
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    env:
+      VERSION: ${{ needs.prepare.outputs.version }}
+      TEST: ${{ needs.prepare.outputs.test }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Extract release notes from CHANGELOG.md
+        run: |
+          # previous version = next version heading below this one in CHANGELOG.md
+          prev=$(awk -v v="$VERSION" '
+            $1 == "##" && $2 == v { found = 1; next }
+            found && $1 == "##" && $2 ~ /^[0-9]+(\.[0-9]+)+(\.post[0-9]+)?$/ { print $2; exit }
+          ' CHANGELOG.md)
+
+          # section of this version, without the heading and without empty ### headings
+          awk -v v="$VERSION" '
+            $1 == "##" && $2 == v { found = 1; next }
+            found && /^## / { exit }
+            !found { next }
+            /^### / { h = $0; next }
+            /^[[:space:]]*$/ { next }
+            {
+              if (h != "") { print h; h = "" }
+              print
+            }
+          ' CHANGELOG.md > release-notes.md
+
+          if [ ! -s release-notes.md ]; then
+            echo "No section '## $VERSION' with entries found in CHANGELOG.md"
+            exit 1
+          fi
+          if [ -n "$prev" ]; then
+            {
+              echo
+              echo "**Full Changelog**: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/compare/$prev...$VERSION"
+            } >> release-notes.md
+          fi
+          cat release-notes.md
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          prerelease=""
+          if [ "$TEST" = true ]; then prerelease="--prerelease"; fi
+          gh release create "$VERSION" $prerelease \
+            --target "$GITHUB_SHA" \
+            --title "$VERSION" \
+            --notes-file release-notes.md
+
+  # Publish to PyPI (real releases) or TestPyPI (test releases)
+  pypi:
+    needs: [ prepare, release ]
+    runs-on: ubuntu-24.04
+    permissions:
+      id-token: write    # allows the job to request the OIDC token for (Test)PyPI
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build wheel and sdist
+        env:
+          TEST: ${{ needs.prepare.outputs.test }}
+        run: |
+          # TestPyPI project is called stresing-test, because stresing is already taken there
+          if [ "$TEST" = true ]; then
+            sed -i 's/^name = "stresing"$/name = "stresing-test"/' pyproject.toml
+            grep '^name' pyproject.toml
+          fi
+          python3 -m pip install build
+          python3 -m build
+          ls -l dist
+
+      - name: Publish to TestPyPI
+        if: needs.prepare.outputs.test == 'true'
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: https://test.pypi.org/legacy/
+
+      - name: Publish to PyPI
+        if: needs.prepare.outputs.test != 'true'
+        uses: pypa/gh-action-pypi-publish@release/v1
+
+  # Archive the source code in Nextcloud: Shared/Release/<ESLSCDLL version>/
+  nextcloud:
+    needs: [ prepare, release ]
+    runs-on: ubuntu-24.04
+    env:
+      VERSION: ${{ needs.prepare.outputs.version }}
+      FOLDER: ${{ needs.prepare.outputs.eslscdll }}
+
+    steps:
+      - name: Download source code
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download "$VERSION" --repo "$GITHUB_REPOSITORY" --archive zip --dir files
+          ls -l files
+
+      - name: Upload to Nextcloud
+        env:
+          NC_USER: ${{ secrets.NEXTCLOUD_USER }}
+          NC_PASSWORD: ${{ secrets.NEXTCLOUD_PASSWORD }}
+        run: |
+          folder="https://nextcloud.stresing.de/remote.php/dav/files/$NC_USER/Shared/Release/$FOLDER"
+
+          # MKCOL creates the folder: 201 = created, 405 = already exists
+          code=$(curl -s -o /dev/null -w '%{http_code}' --retry 3 -u "$NC_USER:$NC_PASSWORD" -X MKCOL "$folder")
+          if [ "$code" != 201 ] && [ "$code" != 405 ]; then
+            echo "Could not create $FOLDER folder: HTTP $code"
+            exit 1
+          fi
+
+          for file in files/*; do
+            echo "Uploading $(basename "$file")"
+            curl -fsS --retry 3 -u "$NC_USER:$NC_PASSWORD" -T "$file" "$folder/$(basename "$file")"
+          done
