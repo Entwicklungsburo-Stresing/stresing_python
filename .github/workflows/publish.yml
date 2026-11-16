@@ -1,0 +1,70 @@
+name: Publish
+
+# Runs when a release is published (clicking "Publish release" on the draft created by release.yml).
+# Uploads the packages attached to the release to PyPI (TestPyPI for pre-releases)
+# and the source code to Nextcloud.
+on:
+  release:
+    types: [ published ]
+
+jobs:
+  # Upload the packages from the release, so exactly the tested files are published
+  pypi:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      id-token: write    # allows the job to request the OIDC token for (Test)PyPI
+    env:
+      VERSION: ${{ github.event.release.tag_name }}
+
+    steps:
+      - name: Download packages from the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download "$VERSION" --repo "$GITHUB_REPOSITORY" --pattern "*.whl" --pattern "*.tar.gz" --dir dist
+          ls -l dist
+
+      - name: Publish to TestPyPI
+        if: github.event.release.prerelease
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: https://test.pypi.org/legacy/
+
+      - name: Publish to PyPI
+        if: ${{ !github.event.release.prerelease }}
+        uses: pypa/gh-action-pypi-publish@release/v1
+
+  # Archive the source code in Nextcloud: Shared/Release/<ESLSCDLL version>/
+  nextcloud:
+    runs-on: ubuntu-24.04
+    env:
+      VERSION: ${{ github.event.release.tag_name }}
+
+    steps:
+      - name: Download source code
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download "$VERSION" --repo "$GITHUB_REPOSITORY" --archive zip --dir files
+          ls -l files
+
+      - name: Upload to Nextcloud
+        env:
+          NC_USER: ${{ secrets.NEXTCLOUD_USER }}
+          NC_PASSWORD: ${{ secrets.NEXTCLOUD_PASSWORD }}
+        run: |
+          folder_name="${VERSION%%.post*}"    # 4.25.0.post1 -> 4.25.0 (ESLSCDLL version)
+          folder="https://nextcloud.stresing.de/remote.php/dav/files/$NC_USER/Shared/Release/$folder_name"
+
+          # MKCOL creates the folder: 201 = created, 405 = already exists
+          code=$(curl -s -o /dev/null -w '%{http_code}' --retry 3 -u "$NC_USER:$NC_PASSWORD" -X MKCOL "$folder")
+          if [ "$code" != 201 ] && [ "$code" != 405 ]; then
+            echo "Could not create $folder_name folder: HTTP $code"
+            exit 1
+          fi
+
+          for file in files/*; do
+            echo "Uploading $(basename "$file")"
+            curl -fsS --retry 3 -u "$NC_USER:$NC_PASSWORD" -T "$file" "$folder/$(basename "$file")"
+          done

@@ -1,62 +1,90 @@
 name: Release
 
-# Releases a new version when pyproject.toml on master contains a version that has no tag yet.
-# ci/release-test is used to test this workflow: releases from there are pre-releases and go to TestPyPI.
+# Runs when a version tag is pushed, e.g. by "git push origin master 4.25.0" after scripts/prepare_release.py.
+# Checks the tag against pyproject.toml and CHANGELOG.md, builds wheel and sdist
+# and creates a draft release with the packages attached.
+# Publishing the draft starts publish.yml (PyPI, Nextcloud).
+# If the tagged commit is not on master (e.g. ci/release-test), it is a test: the draft is a pre-release,
+# the package is called stresing-test and publish.yml uploads it to TestPyPI.
 on:
   push:
-    branches: [ master, ci/release-test ]
+    tags:
+      - '[0-9]+.[0-9]+.[0-9]+'
+      - '[0-9]+.[0-9]+.[0-9]+.post[0-9]+'
 
 jobs:
-  # Find out if there is something to release and if it is a test
+  # Check the tag and decide if it is a test
   prepare:
     runs-on: ubuntu-24.04
     outputs:
-      version: ${{ steps.version.outputs.version }}
-      eslscdll: ${{ steps.version.outputs.eslscdll }}
-      release: ${{ steps.version.outputs.release }}
-      test: ${{ steps.version.outputs.test }}
+      version: ${{ steps.check.outputs.version }}
+      eslscdll: ${{ steps.check.outputs.eslscdll }}
+      sha: ${{ steps.check.outputs.sha }}
+      test: ${{ steps.test.outputs.test }}
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0    # full history, to check if the tagged commit is on master
 
-      - name: Read version and check for existing tag
-        id: version
+      # 1. No release for this tag yet, pyproject.toml has the version, CHANGELOG.md a section with entries
+      - name: Check tag, pyproject.toml and CHANGELOG.md
+        id: check
         env:
           GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ github.ref_name }}
         run: |
-          version=$(python3 -c "import tomllib; print(tomllib.load(open('pyproject.toml', 'rb'))['project']['version'])")
-          eslscdll="${version%%.post*}"    # 4.25.0.post1 -> 4.25.0 (ESLSCDLL version, Nextcloud folder)
-          echo "Version: $version (ESLSCDLL $eslscdll)"
-
-          if git ls-remote --exit-code --tags origin "$version" > /dev/null; then
-            echo "Tag $version already exists, nothing to release"
-            release=false
-          else
-            release=true
+          if gh release view "$VERSION" --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1; then
+            echo "Release $VERSION already exists"
+            exit 1
           fi
 
-          # test release: pushed to the test branch, or the EBST_CAM release is a pre-release
-          ebst_prerelease=$(gh release view "$eslscdll" --repo Entwicklungsburo-Stresing/EBST_CAM \
-            --json isPrerelease --jq .isPrerelease 2> /dev/null || echo false)
-          if [ "$GITHUB_REF_NAME" != master ] || [ "$ebst_prerelease" = true ]; then
-            test=true
-          else
-            test=false
+          project_version=$(python3 -c "import tomllib; print(tomllib.load(open('pyproject.toml', 'rb'))['project']['version'])")
+          if [ "$project_version" != "$VERSION" ]; then
+            echo "pyproject.toml contains version $project_version, but the tag is $VERSION"
+            exit 1
           fi
-          echo "Release: $release, test: $test"
+
+          entries=$(awk -v v="$VERSION" '
+            $1 == "##" && $2 == v { found = 1; next }
+            found && /^## / { exit }
+            found && /^\* / { n++ }
+            END { print n + 0 }
+          ' CHANGELOG.md)
+          if [ "$entries" -eq 0 ]; then
+            echo "CHANGELOG.md has no section '## $VERSION' with entries"
+            exit 1
+          fi
 
           {
-            echo "version=$version"
-            echo "eslscdll=$eslscdll"
-            echo "release=$release"
-            echo "test=$test"
+            echo "version=$VERSION"
+            echo "eslscdll=${VERSION%%.post*}"    # 4.25.0.post1 -> 4.25.0 (ESLSCDLL version, Nextcloud folder)
+            echo "sha=$GITHUB_SHA"
           } >> "$GITHUB_OUTPUT"
 
-  # Create the GitHub release (this also creates the tag on the pushed commit)
+      # 2. Test release: tagged commit is not on master, or the EBST_CAM release is a pre-release
+      - name: Test or real release
+        id: test
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ESLSCDLL: ${{ steps.check.outputs.eslscdll }}
+        run: |
+          git fetch origin master
+          if git merge-base --is-ancestor HEAD origin/master; then on_master=true; else on_master=false; fi
+          ebst_prerelease=$(gh release view "$ESLSCDLL" --repo Entwicklungsburo-Stresing/EBST_CAM \
+            --json isPrerelease --jq .isPrerelease 2> /dev/null || echo false)
+          if [ "$on_master" = true ] && [ "$ebst_prerelease" != true ]; then
+            test=false
+          else
+            test=true
+          fi
+          echo "On master: $on_master, EBST_CAM pre-release: $ebst_prerelease, test: $test"
+          echo "test=$test" >> "$GITHUB_OUTPUT"
+
+  # Build the packages and create the draft release
   release:
     needs: prepare
-    if: needs.prepare.outputs.release == 'true'
     runs-on: ubuntu-24.04
     permissions:
       contents: write
@@ -67,6 +95,19 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.prepare.outputs.sha }}
+
+      - name: Build wheel and sdist
+        run: |
+          # TestPyPI project is called stresing-test, because stresing is already taken there
+          if [ "$TEST" = true ]; then
+            sed -i 's/^name = "stresing"$/name = "stresing-test"/' pyproject.toml
+            grep '^name' pyproject.toml
+          fi
+          python3 -m pip install build
+          python3 -m build
+          ls -l dist
 
       - name: Extract release notes from CHANGELOG.md
         run: |
@@ -89,10 +130,6 @@ jobs:
             }
           ' CHANGELOG.md > release-notes.md
 
-          if [ ! -s release-notes.md ]; then
-            echo "No section '## $VERSION' with entries found in CHANGELOG.md"
-            exit 1
-          fi
           if [ -n "$prev" ]; then
             {
               echo
@@ -101,82 +138,15 @@ jobs:
           fi
           cat release-notes.md
 
-      - name: Create GitHub release
+      - name: Create draft release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           prerelease=""
           if [ "$TEST" = true ]; then prerelease="--prerelease"; fi
           gh release create "$VERSION" $prerelease \
-            --target "$GITHUB_SHA" \
+            --draft \
+            --verify-tag \
             --title "$VERSION" \
-            --notes-file release-notes.md
-
-  # Publish to PyPI (real releases) or TestPyPI (test releases)
-  pypi:
-    needs: [ prepare, release ]
-    runs-on: ubuntu-24.04
-    permissions:
-      id-token: write    # allows the job to request the OIDC token for (Test)PyPI
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Build wheel and sdist
-        env:
-          TEST: ${{ needs.prepare.outputs.test }}
-        run: |
-          # TestPyPI project is called stresing-test, because stresing is already taken there
-          if [ "$TEST" = true ]; then
-            sed -i 's/^name = "stresing"$/name = "stresing-test"/' pyproject.toml
-            grep '^name' pyproject.toml
-          fi
-          python3 -m pip install build
-          python3 -m build
-          ls -l dist
-
-      - name: Publish to TestPyPI
-        if: needs.prepare.outputs.test == 'true'
-        uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          repository-url: https://test.pypi.org/legacy/
-
-      - name: Publish to PyPI
-        if: needs.prepare.outputs.test != 'true'
-        uses: pypa/gh-action-pypi-publish@release/v1
-
-  # Archive the source code in Nextcloud: Shared/Release/<ESLSCDLL version>/
-  nextcloud:
-    needs: [ prepare, release ]
-    runs-on: ubuntu-24.04
-    env:
-      VERSION: ${{ needs.prepare.outputs.version }}
-      FOLDER: ${{ needs.prepare.outputs.eslscdll }}
-
-    steps:
-      - name: Download source code
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          gh release download "$VERSION" --repo "$GITHUB_REPOSITORY" --archive zip --dir files
-          ls -l files
-
-      - name: Upload to Nextcloud
-        env:
-          NC_USER: ${{ secrets.NEXTCLOUD_USER }}
-          NC_PASSWORD: ${{ secrets.NEXTCLOUD_PASSWORD }}
-        run: |
-          folder="https://nextcloud.stresing.de/remote.php/dav/files/$NC_USER/Shared/Release/$FOLDER"
-
-          # MKCOL creates the folder: 201 = created, 405 = already exists
-          code=$(curl -s -o /dev/null -w '%{http_code}' --retry 3 -u "$NC_USER:$NC_PASSWORD" -X MKCOL "$folder")
-          if [ "$code" != 201 ] && [ "$code" != 405 ]; then
-            echo "Could not create $FOLDER folder: HTTP $code"
-            exit 1
-          fi
-
-          for file in files/*; do
-            echo "Uploading $(basename "$file")"
-            curl -fsS --retry 3 -u "$NC_USER:$NC_PASSWORD" -T "$file" "$folder/$(basename "$file")"
-          done
+            --notes-file release-notes.md \
+            dist/*
