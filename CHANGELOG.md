@@ -9,6 +9,7 @@ The version is derrived from the main library [ESLSCDLL](https://github.com/Entw
 ## Unreleased
 ### Added
 ### Changed
+* Update ESLSCDLL to 9.9.10
 ### Removed
 ### Fixed
 ### Deprecated
