@@ -31,6 +31,7 @@ dev = ["build", "twine"]
 
 [tool.setuptools.packages.find]
 where = ["."]
+exclude = ["scripts*"]
 
 [tool.setuptools.package-data]
 stresing = ["*.dll", "*.so"]
